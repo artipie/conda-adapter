@@ -33,7 +33,7 @@ class MergedJsonTest {
             factory.createGenerator(res).useDefaultPrettyPrinter(),
             Optional.empty()
         ).merge(
-            new MapOf<>(
+            new MapOf<String, JsonObject>(
                 this.packageItem("decorator-4.2.1-py27_0.tar.bz2", "decorator-tar.json"),
                 this.packageItem("notebook-6.1.1-py38_0.conda", "notebook-conda.json"),
                 this.packageItem("pyqt-5.6.0-py36h0386399_5.tar.bz2", "pyqt-tar.json"),
@@ -58,7 +58,7 @@ class MergedJsonTest {
             factory.createGenerator(res).useDefaultPrettyPrinter(),
             Optional.empty()
         ).merge(
-            new MapOf<>(
+            new MapOf<String, JsonObject>(
                 this.packageItem("decorator-4.2.1-py27_0.tar.bz2", "decorator-tar.json"),
                 this.packageItem("pyqt-5.6.0-py36h0386399_5.tar.bz2", "pyqt-tar.json")
             )
@@ -81,7 +81,7 @@ class MergedJsonTest {
             factory.createGenerator(res).useDefaultPrettyPrinter(),
             Optional.empty()
         ).merge(
-            new MapOf<>(
+            new MapOf<String, JsonObject>(
                 this.packageItem("notebook-6.1.1-py38_0.conda", "notebook-conda.json"),
                 this.packageItem("tenacity-6.2.0-py37_0.conda", "tenacity-conda.json")
             )
@@ -97,7 +97,7 @@ class MergedJsonTest {
     }
 
     private MapEntry<String, JsonObject> packageItem(final String filename, final String resourse) {
-        return new MapEntry<>(
+        return new MapEntry<String, JsonObject>(
             filename,
             Json.createReader(
                 new TestResource(String.format("MergedJsonTest/%s", resourse)).asInputStream()

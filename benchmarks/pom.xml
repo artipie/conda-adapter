@@ -35,7 +35,7 @@ SOFTWARE.
   <packaging>jar</packaging>
   <properties>
     <jmh.version>1.29</jmh.version>
-    <asto.version>1.2.1</asto.version>
+    <asto.version>v1.3.2</asto.version>
   </properties>
   <dependencies>
     <dependency>

@@ -4,7 +4,6 @@
  */
 package com.artipie.conda.benchmarks;
 
-import com.artipie.asto.misc.UncheckedIOFunc;
 import com.artipie.conda.CondaRepodata;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,12 +11,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.cactoos.scalar.Unchecked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Measurement;
@@ -63,27 +62,21 @@ public class CondaRepodataAppendBench {
         if (CondaRepodataAppendBench.BENCH_DIR == null) {
             throw new IllegalStateException("BENCH_DIR environment variable must be set");
         }
+        this.pckg = new ArrayList<>();
         try (Stream<Path> stream = Files.list(Paths.get(CondaRepodataAppendBench.BENCH_DIR))) {
-            final List<Path> files = stream.collect(Collectors.toList());
-            this.repodata = files.stream()
-                .filter(item -> item.toString().endsWith("repodata.json")).findFirst()
-                .map(file -> new Unchecked<>(() -> Files.readAllBytes(file)).value())
-                .orElseThrow(() -> new IllegalStateException("Benchmark data not found"));
-            this.pckg = files.stream().filter(
-                item -> item.toString().endsWith(".tar.bz2") || item.toString().endsWith(".conda")
-            ).map(
-                new UncheckedIOFunc<>(
-                    item -> {
-                        final byte[] bytes = Files.readAllBytes(item);
-                        return new TestPackage(
-                            bytes,
-                            item.getFileName().toString(),
-                            DigestUtils.sha256Hex(bytes),
-                            DigestUtils.md5Hex(bytes)
-                        );
-                    }
-                )
-            ).collect(Collectors.toList());
+            for (final Path file : stream.collect(Collectors.toList())) {
+                final byte[] bytes = Files.readAllBytes(file);
+                final String name = file.getFileName().toString();
+                if (name.endsWith("repodata.json")) {
+                    this.repodata = bytes;
+                } else if (name.endsWith(".tar.bz2") || name.endsWith(".conda")) {
+                    this.pckg.add(
+                        new TestPackage(
+                            bytes, name, DigestUtils.sha256Hex(bytes), DigestUtils.md5Hex(bytes)
+                        )
+                    );
+                }
+            }
         }
     }
 
@@ -150,10 +143,9 @@ public class CondaRepodataAppendBench {
          * @param sha256 Sha256 sum of the package
          * @param md5 Md5 sum of the package
          * @checkstyle ParameterNumberCheck (5 lines)
-         * @checkstyle ParameterNameCheck (5 lines)
          */
         public TestPackage(final byte[] input, final String filename, final String sha256,
-                           final String md5) {
+            final String md5) {
             this.input = input;
             this.filename = filename;
             this.sha256 = sha256;

@@ -23,3 +23,10 @@ replaced with newly added packages metadata. `CondaRepodataAppendBench` works wi
 `com.artipie.conda.CondaRepodata.Append` class, requires `repodata.json` file and conda packages 
 (`.tar.bz2` or `.conda`) in the test directory. Example test data resource can be found 
 [here](https://artipie.s3.amazonaws.com/conda-test/conda-append.tar.gz).
+
+### MultiRepodataBench
+
+This benchmark merges several metadata files `repodata.json` into single `repodata.json`. Duplicates 
+are filtered. `MultiRepodataBench` works with `com.artipie.conda.MultiRepodata.Unique` class, 
+requires `repodata.json` files in the test directory. Example test data resource can be found 
+[here](https://artipie.s3.amazonaws.com/conda-test/conda-merge.tar.gz).

@@ -13,6 +13,7 @@ import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rt.ByMethodsRule;
+import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
@@ -20,6 +21,7 @@ import com.artipie.http.slice.SliceDownload;
 /**
  * Main conda entry point.
  * @since 0.4
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class CondaSlice extends Slice.Wrap {
 
@@ -40,6 +42,17 @@ public final class CondaSlice extends Slice.Wrap {
     public CondaSlice(final Storage storage, final Permissions perms, final Authentication users) {
         super(
             new SliceRoute(
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*repodata\\.json$"),
+                        new ByMethodsRule(RqMethod.GET)
+                    ),
+                    new BasicAuthSlice(
+                        new DownloadRepodataSlice(storage),
+                        users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
                 new RtRulePath(
                     new ByMethodsRule(RqMethod.GET),
                     new BasicAuthSlice(

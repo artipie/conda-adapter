@@ -4,7 +4,6 @@
  */
 package com.artipie.conda;
 
-import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
@@ -89,15 +88,6 @@ public final class CondaSliceITCase {
     void canInstall() throws Exception {
         new TestResource("CondaSliceITCase/packages.json")
             .saveTo(this.storage, new Key.From("linux-64/repodata.json"));
-        this.storage.save(
-            new Key.From("linux-64/current_repodata.json"), new Content.From("{}".getBytes())
-        ).join();
-        this.storage.save(
-            new Key.From("noarch/current_repodata.json"), new Content.From("{}".getBytes())
-        ).join();
-        this.storage.save(
-            new Key.From("noarch/repodata.json"), new Content.From("{}".getBytes())
-        ).join();
         new TestResource("CondaSliceITCase/snappy-1.1.3-0.tar.bz2")
             .saveTo(this.storage, new Key.From("linux-64/snappy-1.1.3-0.tar.bz2"));
         MatcherAssert.assertThat(

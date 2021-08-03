@@ -6,6 +6,7 @@ package com.artipie.conda.http;
 
 import com.artipie.asto.Content;
 import com.artipie.asto.Storage;
+import com.artipie.asto.ext.KeyLastPart;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
@@ -26,6 +27,7 @@ import org.reactivestreams.Publisher;
  * Slice to download repodata.json. If the repodata item does not exists in storage, empty
  * json is returned.
  * @since 0.4
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class DownloadRepodataSlice implements Slice {
 
@@ -64,7 +66,8 @@ public final class DownloadRepodataSlice implements Slice {
                     ).thenApply(
                         content -> new RsFull(
                             RsStatus.OK,
-                            new Headers.From(new ContentFileName(key.toString())), content
+                            new Headers.From(new ContentFileName(new KeyLastPart(key).get())),
+                            content
                         )
                     )
                 )

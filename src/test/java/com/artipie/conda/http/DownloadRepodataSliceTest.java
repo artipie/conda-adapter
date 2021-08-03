@@ -8,17 +8,22 @@ import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.headers.ContentDisposition;
+import com.artipie.http.headers.ContentLength;
 import com.artipie.http.hm.RsHasBody;
+import com.artipie.http.hm.RsHasHeaders;
 import com.artipie.http.hm.SliceHasResponse;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Test for {@link DownloadRepodataSlice}.
  * @since 0.4
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 class DownloadRepodataSliceTest {
 
@@ -41,7 +46,13 @@ class DownloadRepodataSliceTest {
         MatcherAssert.assertThat(
             new DownloadRepodataSlice(this.asto),
             new SliceHasResponse(
-                new RsHasBody(bytes),
+                Matchers.allOf(
+                    new RsHasBody(bytes),
+                    new RsHasHeaders(
+                        new ContentDisposition("attachment; filename=\"repodata.json\""),
+                        new ContentLength(bytes.length)
+                    )
+                ),
                 new RequestLine(RqMethod.GET, "/linux-64/repodata.json")
             )
         );
@@ -49,10 +60,17 @@ class DownloadRepodataSliceTest {
 
     @Test
     void returnsEmptyJsonIfNotExists() {
+        final byte[] bytes = "{}".getBytes();
         MatcherAssert.assertThat(
             new DownloadRepodataSlice(this.asto),
             new SliceHasResponse(
-                new RsHasBody("{}".getBytes()),
+                Matchers.allOf(
+                    new RsHasBody(bytes),
+                    new RsHasHeaders(
+                        new ContentDisposition("attachment; filename=\"current_repodata.json\""),
+                        new ContentLength(bytes.length)
+                    )
+                ),
                 new RequestLine(RqMethod.GET, "/noarch/current_repodata.json")
             )
         );

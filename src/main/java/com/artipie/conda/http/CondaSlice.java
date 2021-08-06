@@ -12,11 +12,17 @@ import com.artipie.http.auth.BasicAuthSlice;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
 import com.artipie.http.rq.RqMethod;
+import com.artipie.http.rs.StandardRs;
+import com.artipie.http.rs.common.RsJson;
 import com.artipie.http.rt.ByMethodsRule;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
+import com.artipie.http.slice.SliceSimple;
+import java.nio.charset.StandardCharsets;
+import javax.json.Json;
+import org.cactoos.io.ReaderOf;
 
 /**
  * Main conda entry point.
@@ -54,12 +60,50 @@ public final class CondaSlice extends Slice.Wrap {
                     )
                 ),
                 new RtRulePath(
-                    new ByMethodsRule(RqMethod.GET),
+                    new RtRule.All(
+                        new RtRule.ByPath(".*(\\.tar\\.bz2|\\.conda)$"),
+                        new ByMethodsRule(RqMethod.GET)
+                    ),
                     new BasicAuthSlice(
                         new SliceDownload(storage),
                         users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*authentication-type$"),
+                        new ByMethodsRule(RqMethod.GET)
+                    ),
+                    new BasicAuthSlice(
+                        new SliceSimple(
+                            new RsJson(
+                                () -> Json.createReader(
+                                    new ReaderOf("{\"authentication_type\": \"password\"}")
+                                ).read(),
+                                StandardCharsets.UTF_8
+                            )
+                        ),
+                        users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*authentications$"),
+                        new ByMethodsRule(RqMethod.POST)
+                    ),
+                    new BasicAuthSlice(
+                        new AuthToketSlice(),
+                        users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new ByMethodsRule(RqMethod.HEAD)
+                    ),
+                    new SliceSimple(StandardRs.OK)
                 )
             )
         );

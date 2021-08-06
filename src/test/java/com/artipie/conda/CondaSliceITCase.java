@@ -13,6 +13,7 @@ import com.artipie.http.slice.LoggingSlice;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.cactoos.list.ListOf;
@@ -31,6 +32,7 @@ import org.testcontainers.containers.GenericContainer;
  * @since 0.3
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class CondaSliceITCase {
 
     /**
@@ -60,6 +62,11 @@ public final class CondaSliceITCase {
      */
     private GenericContainer<?> cntn;
 
+    /**
+     * Application port.
+     */
+    private int port;
+
     @BeforeEach
     void initialize() throws Exception {
         this.storage = new InMemoryStorage();
@@ -67,25 +74,43 @@ public final class CondaSliceITCase {
             CondaSliceITCase.VERTX,
             new LoggingSlice(new CondaSlice(this.storage))
         );
-        final int port = this.server.start();
-        Testcontainers.exposeHostPorts(port);
-        final Path setting = this.tmp.resolve(".condarc");
+        this.port = this.server.start();
+        Testcontainers.exposeHostPorts(this.port);
         Files.write(
-            setting,
+            this.tmp.resolve(".condarc"),
             String.format(
-                "channels:\n  - http://host.testcontainers.internal:%d/", port
+                "channels:\n  - http://host.testcontainers.internal:%d/", this.port
             ).getBytes()
         );
-        this.cntn = new GenericContainer<>("continuumio/miniconda3:4.8.2")
+        this.cntn = new GenericContainer<>("continuumio/miniconda3:4.10.3")
             .withCommand("tail", "-f", "/dev/null")
             .withWorkingDirectory("/home/")
             .withFileSystemBind(this.tmp.toString(), "/home");
         this.cntn.start();
-        this.cntn.execInContainer("mv", "/home/.condarc", "/opt/conda/");
+    }
+
+    @Test
+    void anacondaCanLogin() throws Exception {
+        this.exec("conda", "install", "-y", "anaconda-client");
+        this.exec(
+            "anaconda", "config", "--set", "url",
+            String.format("http://host.testcontainers.internal:%d/", this.port),
+            "-s"
+        );
+        MatcherAssert.assertThat(
+            this.exec("anaconda", "login", "--username", "any", "--password", "any"),
+            new StringContainsInOrder(
+                new ListOf<>(
+                    "Using Anaconda API: http://host.testcontainers.internal",
+                    "any's login successful"
+                )
+            )
+        );
     }
 
     @Test
     void canInstall() throws Exception {
+        this.moveCondarc();
         new TestResource("CondaSliceITCase/packages.json")
             .saveTo(this.storage, new Key.From("linux-64/repodata.json"));
         new TestResource("CondaSliceITCase/snappy-1.1.3-0.tar.bz2")
@@ -114,6 +139,11 @@ public final class CondaSliceITCase {
     private String exec(final String... command) throws Exception {
         final Container.ExecResult res = this.cntn.execInContainer(command);
         Logger.debug(this, "Command:\n%s\nResult:\n%s", String.join(" ", command), res.toString());
-        return res.getStdout();
+        return res.toString();
+    }
+
+    private void moveCondarc() throws IOException, InterruptedException {
+        this.cntn.execInContainer("mv", "/home/.condarc", "/root/");
+        this.cntn.execInContainer("rm", "/home/.condarc");
     }
 }

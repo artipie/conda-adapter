@@ -19,7 +19,7 @@ import org.reactivestreams.Publisher;
  *  on `POST /authentications`. For more details check swagger api page:
  *  https://api.anaconda.org/docs#!/authentication/post_authentications
  */
-public final class AuthToketSlice implements Slice {
+final class AuthTokenSlice implements Slice {
 
     @Override
     public Response response(final String line, final Iterable<Map.Entry<String, String>> headers,

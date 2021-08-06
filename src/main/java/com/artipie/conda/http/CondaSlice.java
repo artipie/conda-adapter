@@ -94,9 +94,9 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new AuthToketSlice(),
+                        new AuthTokenSlice(),
                         users,
-                        new Permission.ByName(perms, Action.Standard.READ)
+                        new Permission.ByName(perms, Action.Standard.WRITE)
                     )
                 ),
                 new RtRulePath(

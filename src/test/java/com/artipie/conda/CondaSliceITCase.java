@@ -16,8 +16,10 @@ import io.vertx.reactivex.core.Vertx;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.StringContains;
 import org.hamcrest.text.StringContainsInOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,8 +81,13 @@ public final class CondaSliceITCase {
         Files.write(
             this.tmp.resolve(".condarc"),
             String.format(
-                "channels:\n  - http://host.testcontainers.internal:%d/", this.port
+                "channels:\n  - http://host.testcontainers.internal:%d/\nanaconda_upload: True",
+                this.port
             ).getBytes()
+        );
+        FileUtils.copyDirectory(
+            new TestResource("example-project").asPath().toFile(),
+            this.tmp.toFile()
         );
         this.cntn = new GenericContainer<>("continuumio/miniconda3:4.10.3")
             .withCommand("tail", "-f", "/dev/null")
@@ -103,6 +110,37 @@ public final class CondaSliceITCase {
                 new ListOf<>(
                     "Using Anaconda API: http://host.testcontainers.internal",
                     "any's login successful"
+                )
+            )
+        );
+    }
+
+    @Test
+    void canPublishWithCondaBuild() throws Exception {
+        this.exec("conda", "install", "-y", "conda-build");
+        this.exec("conda", "install", "-y", "conda-verify");
+        this.exec("conda", "install", "-y", "anaconda-client");
+        this.moveCondarc();
+        this.exec(
+            "anaconda", "config", "--set", "url",
+            String.format("http://host.testcontainers.internal:%d/", this.port),
+            "-s"
+        );
+        this.exec("conda", "config", "--set", "anaconda_upload", "yes");
+        MatcherAssert.assertThat(
+            "Login was not successful",
+            this.exec("anaconda", "login", "--username", "any", "--password", "any"),
+            new StringContains("any's login successful")
+        );
+        MatcherAssert.assertThat(
+            "Package was not installed successfully",
+            this.exec("conda", "build", "--output-folder", "./conda-out/", "./conda/"),
+            new StringContainsInOrder(
+                new ListOf<String>(
+                    "Creating package \"example-package\"", "Creating release \"0.0.1\"",
+                    // @checkstyle LineLengthCheck (1 line)
+                    "Uploading file \"any/example-package/0.0.1/linux-64/example-package-0.0.1-0.tar.bz2\"",
+                    "The provided token has expired."
                 )
             )
         );

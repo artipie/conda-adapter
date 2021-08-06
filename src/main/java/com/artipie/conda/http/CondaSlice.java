@@ -29,6 +29,7 @@ import org.cactoos.io.ReaderOf;
  * @since 0.4
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveMethodLength"})
 public final class CondaSlice extends Slice.Wrap {
 
     /**
@@ -66,6 +67,55 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new BasicAuthSlice(
                         new SliceDownload(storage),
+                        users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*(\\.tar\\.bz2|\\.conda)$"),
+                        new ByMethodsRule(RqMethod.POST)
+                    ),
+                    new BasicAuthSlice(
+                        new PostStageCommitSlice(), users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*(package|release).*"),
+                        new ByMethodsRule(RqMethod.GET)
+                    ),
+                    new BasicAuthSlice(
+                        new GetPackageSlice(),
+                        users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*(package|release).*"),
+                        new ByMethodsRule(RqMethod.POST)
+                    ),
+                    new BasicAuthSlice(
+                        new PostPackageReleaseSlice(),
+                        users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new ByMethodsRule(RqMethod.HEAD)
+                    ),
+                    new SliceSimple(StandardRs.OK)
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath("/user"),
+                        new ByMethodsRule(RqMethod.GET)
+                    ),
+                    new BasicAuthSlice(
+                        new GetUserSlice(),
                         users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )

@@ -19,6 +19,8 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Test for {@link DownloadRepodataSlice}.
@@ -58,20 +60,23 @@ class DownloadRepodataSliceTest {
         );
     }
 
-    @Test
-    void returnsEmptyJsonIfNotExists() {
-        final byte[] bytes = "{}".getBytes();
+    @ParameterizedTest
+    @ValueSource(strings = {"current_repodata.json", "repodata.json"})
+    void returnsEmptyJsonIfNotExists(final String filename) {
+        final byte[] bytes = "{\"info\": {\"subdir\": \"noarch\"}}".getBytes();
         MatcherAssert.assertThat(
             new DownloadRepodataSlice(this.asto),
             new SliceHasResponse(
                 Matchers.allOf(
                     new RsHasBody(bytes),
                     new RsHasHeaders(
-                        new ContentDisposition("attachment; filename=\"current_repodata.json\""),
+                        new ContentDisposition(
+                            String.format("attachment; filename=\"%s\"", filename)
+                        ),
                         new ContentLength(bytes.length)
                     )
                 ),
-                new RequestLine(RqMethod.GET, "/noarch/current_repodata.json")
+                new RequestLine(RqMethod.GET, String.format("/noarch/%s", filename))
             )
         );
     }

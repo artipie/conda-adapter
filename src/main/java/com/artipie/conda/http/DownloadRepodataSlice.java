@@ -5,6 +5,7 @@
 package com.artipie.conda.http;
 
 import com.artipie.asto.Content;
+import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.KeyLastPart;
 import com.artipie.http.Headers;
@@ -15,12 +16,15 @@ import com.artipie.http.headers.ContentFileName;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rs.RsFull;
 import com.artipie.http.rs.RsStatus;
+import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.slice.KeyFromPath;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
 /**
@@ -30,6 +34,11 @@ import org.reactivestreams.Publisher;
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class DownloadRepodataSlice implements Slice {
+
+    /**
+     * Request path pattern.
+     */
+    private static final Pattern RQ_PATH = Pattern.compile(".*/(.+)/(current_)?repodata\\.json");
 
     /**
      * Abstract storage.
@@ -49,27 +58,45 @@ public final class DownloadRepodataSlice implements Slice {
         final Publisher<ByteBuffer> body) {
         return new AsyncResponse(
             CompletableFuture
-                .supplyAsync(() -> new KeyFromPath(new RequestLineFrom(line).uri().getPath()))
+                .supplyAsync(() -> new RequestLineFrom(line).uri().getPath())
                 .thenCompose(
-                    key -> this.asto.exists(key).thenCompose(
-                        exist -> {
-                            final CompletionStage<Content> content;
-                            if (exist) {
-                                content = this.asto.value(key);
-                            } else {
-                                content = CompletableFuture.completedFuture(
-                                    new Content.From("{}".getBytes(StandardCharsets.US_ASCII))
-                                );
-                            }
-                            return content;
+                    path -> {
+                        final Matcher matcher = DownloadRepodataSlice.RQ_PATH.matcher(path);
+                        final CompletionStage<Response> res;
+                        if (matcher.matches()) {
+                            final Key key = new KeyFromPath(path);
+                            res = this.asto.exists(key).thenCompose(
+                                exist -> {
+                                    final CompletionStage<Content> content;
+                                    if (exist) {
+                                        content = this.asto.value(key);
+                                    } else {
+                                        content = CompletableFuture.completedFuture(
+                                            new Content.From(
+                                                String.format(
+                                                    "{\"info\": {\"subdir\": \"%s\"}}",
+                                                    matcher.group(1)
+                                                ).getBytes(StandardCharsets.US_ASCII)
+                                            )
+                                        );
+                                    }
+                                    return content;
+                                }
+                            ).thenApply(
+                                content -> new RsFull(
+                                    RsStatus.OK,
+                                    new Headers.From(
+                                        new ContentFileName(new KeyLastPart(key).get())
+                                    ),
+                                    content
+                                )
+                            );
+                        } else {
+                            res = CompletableFuture
+                                .completedFuture(new RsWithStatus(RsStatus.BAD_REQUEST));
                         }
-                    ).thenApply(
-                        content -> new RsFull(
-                            RsStatus.OK,
-                            new Headers.From(new ContentFileName(new KeyLastPart(key).get())),
-                            content
-                        )
-                    )
+                        return res;
+                    }
                 )
         );
     }

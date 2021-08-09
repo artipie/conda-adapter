@@ -63,7 +63,7 @@ class DownloadRepodataSliceTest {
     @ParameterizedTest
     @ValueSource(strings = {"current_repodata.json", "repodata.json"})
     void returnsEmptyJsonIfNotExists(final String filename) {
-        final byte[] bytes = "{\"info\": {\"subdir\": \"noarch\"}}".getBytes();
+        final byte[] bytes = "{\"info\":{\"subdir\":\"noarch\"}}".getBytes();
         MatcherAssert.assertThat(
             new DownloadRepodataSlice(this.asto),
             new SliceHasResponse(

@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.json.Json;
 import org.reactivestreams.Publisher;
 
 /**
@@ -73,10 +74,11 @@ public final class DownloadRepodataSlice implements Slice {
                                     } else {
                                         content = CompletableFuture.completedFuture(
                                             new Content.From(
-                                                String.format(
-                                                    "{\"info\": {\"subdir\": \"%s\"}}",
-                                                    matcher.group(1)
-                                                ).getBytes(StandardCharsets.US_ASCII)
+                                                Json.createObjectBuilder().add(
+                                                    "info", Json.createObjectBuilder()
+                                                        .add("subdir", matcher.group(1))
+                                                ).build().toString()
+                                                    .getBytes(StandardCharsets.US_ASCII)
                                             )
                                         );
                                     }

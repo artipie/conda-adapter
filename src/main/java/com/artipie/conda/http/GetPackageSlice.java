@@ -15,7 +15,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import javax.json.Json;
-import org.cactoos.io.ReaderOf;
 import org.reactivestreams.Publisher;
 
 /**
@@ -33,15 +32,14 @@ public final class GetPackageSlice implements Slice {
         final Publisher<ByteBuffer> body) {
         return new RsJson(
             RsStatus.NOT_FOUND,
-            () -> Json.createReader(
-                new ReaderOf(
-                    String.format(
-                        "{\"error\": \"\\\"%s\\\" could not be found\"}",
-                        new KeyLastPart(new KeyFromPath(new RequestLineFrom(line).uri().getPath()))
-                            .get()
-                    )
+            () -> Json.createObjectBuilder().add(
+                "error", String.format(
+                    "\"%s\" could not be found",
+                    new KeyLastPart(
+                        new KeyFromPath(new RequestLineFrom(line).uri().getPath())
+                    ).get()
                 )
-            ).read(),
+            ).build(),
             StandardCharsets.UTF_8
         );
     }

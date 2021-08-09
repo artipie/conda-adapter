@@ -20,6 +20,7 @@ import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.http.slice.SliceSimple;
+import com.artipie.http.slice.SliceUpload;
 import java.nio.charset.StandardCharsets;
 import javax.json.Json;
 import org.cactoos.io.ReaderOf;
@@ -35,9 +36,10 @@ public final class CondaSlice extends Slice.Wrap {
     /**
      * Ctor.
      * @param storage Storage
+     * @param url Application url
      */
-    public CondaSlice(final Storage storage) {
-        this(storage, Permissions.FREE, Authentication.ANONYMOUS);
+    public CondaSlice(final Storage storage, final String url) {
+        this(storage, Permissions.FREE, Authentication.ANONYMOUS, url);
     }
 
     /**
@@ -45,8 +47,11 @@ public final class CondaSlice extends Slice.Wrap {
      * @param storage Storage
      * @param perms Permissions
      * @param users Users
+     * @param url Application url
+     * @checkstyle ParameterNumberCheck (5 lines)
      */
-    public CondaSlice(final Storage storage, final Permissions perms, final Authentication users) {
+    public CondaSlice(final Storage storage, final Permissions perms, final Authentication users,
+        final String url) {
         super(
             new SliceRoute(
                 new RtRulePath(
@@ -73,11 +78,22 @@ public final class CondaSlice extends Slice.Wrap {
                 ),
                 new RtRulePath(
                     new RtRule.All(
+                        new RtRule.ByPath("/(stage|commit).*(\\.tar\\.bz2|\\.conda)$"),
+                        new ByMethodsRule(RqMethod.POST)
+                    ),
+                    new BasicAuthSlice(
+                        new PostStageCommitSlice(url), users,
+                        new Permission.ByName(perms, Action.Standard.READ)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
                         new RtRule.ByPath(".*(\\.tar\\.bz2|\\.conda)$"),
                         new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new PostStageCommitSlice(), users,
+                        new SliceUpload(storage),
+                        users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),

@@ -26,6 +26,19 @@ import org.reactivestreams.Publisher;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class PostStageCommitSlice implements Slice {
 
+    /**
+     * Url to upload.
+     */
+    private final String url;
+
+    /**
+     * Ctor.
+     * @param url Url to upload
+     */
+    public PostStageCommitSlice(final String url) {
+        this.url = url;
+    }
+
     @Override
     public Response response(
         final String line,
@@ -54,8 +67,8 @@ public final class PostStageCommitSlice implements Slice {
                         "    \"x-amz-storage-class\": \"STANDARD\"",
                         "  }, ",
                         "  \"package_id\": \"610d055a4e06fc7145474a3a\", ",
-                        "  \"post_url\": \"https://binstar-cio-packages-prod.s3.amazonaws.com/\", ",
-                        "  \"s3_url\": \"https://binstar-cio-packages-prod.s3.amazonaws.com/\", ",
+                        String.format("  \"post_url\": \"%s/linux-64/example-package-0.0.1-0.tar.bz2\", ", this.url),
+                        String.format("  \"s3_url\": \"%s/linux-64/example-package-0.0.1-0.tar.bz2\", ", this.url),
                         "  \"s3form_data\": {",
                         "    \"Content-Type\": \"application/octet-stream\", ",
                         "    \"acl\": \"private\", ",

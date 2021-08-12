@@ -39,7 +39,7 @@ public final class DownloadRepodataSlice implements Slice {
     /**
      * Request path pattern.
      */
-    private static final Pattern RQ_PATH = Pattern.compile(".*/(.+)/(current_)?repodata\\.json");
+    private static final Pattern RQ_PATH = Pattern.compile(".*/((.+)/(current_)?repodata\\.json)");
 
     /**
      * Abstract storage.
@@ -65,7 +65,7 @@ public final class DownloadRepodataSlice implements Slice {
                         final Matcher matcher = DownloadRepodataSlice.RQ_PATH.matcher(path);
                         final CompletionStage<Response> res;
                         if (matcher.matches()) {
-                            final Key key = new KeyFromPath(path);
+                            final Key key = new Key.From(matcher.group(1));
                             res = this.asto.exists(key).thenCompose(
                                 exist -> {
                                     final CompletionStage<Content> content;
@@ -76,7 +76,7 @@ public final class DownloadRepodataSlice implements Slice {
                                             new Content.From(
                                                 Json.createObjectBuilder().add(
                                                     "info", Json.createObjectBuilder()
-                                                        .add("subdir", matcher.group(1))
+                                                        .add("subdir", matcher.group(2))
                                                 ).build().toString()
                                                     .getBytes(StandardCharsets.US_ASCII)
                                             )

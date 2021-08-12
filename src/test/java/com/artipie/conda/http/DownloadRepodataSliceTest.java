@@ -55,7 +55,7 @@ class DownloadRepodataSliceTest {
                         new ContentLength(bytes.length)
                     )
                 ),
-                new RequestLine(RqMethod.GET, "/linux-64/repodata.json")
+                new RequestLine(RqMethod.GET, "any/other/parts/linux-64/repodata.json")
             )
         );
     }

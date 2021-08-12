@@ -119,12 +119,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
-                new RtRulePath(
-                    new RtRule.All(
-                        new ByMethodsRule(RqMethod.HEAD)
-                    ),
-                    new SliceSimple(StandardRs.OK)
-                ),
+                new RtRulePath(new ByMethodsRule(RqMethod.HEAD), new SliceSimple(StandardRs.OK)),
                 new RtRulePath(
                     new RtRule.All(
                         new RtRule.ByPath("/user"),
@@ -165,12 +160,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new Permission.ByName(perms, Action.Standard.WRITE)
                     )
                 ),
-                new RtRulePath(
-                    new RtRule.All(
-                        new ByMethodsRule(RqMethod.HEAD)
-                    ),
-                    new SliceSimple(StandardRs.OK)
-                )
+                new RtRulePath(RtRule.FALLBACK, new SliceSimple(StandardRs.NOT_FOUND))
             )
         );
     }

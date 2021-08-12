@@ -84,8 +84,7 @@ public final class CondaSliceITCase {
         this.server.start();
         Testcontainers.exposeHostPorts(this.port);
         Files.write(
-            this.tmp.resolve(".condarc"),
-            String.format("channels:\n  - %s\nanaconda_upload: True", url).getBytes()
+            this.tmp.resolve(".condarc"), String.format("channels:\n  - %s", url).getBytes()
         );
         FileUtils.copyDirectory(
             new TestResource("example-project").asPath().toFile(),
@@ -134,23 +133,10 @@ public final class CondaSliceITCase {
             this.exec("anaconda", "login", "--username", "any", "--password", "any"),
             new StringContains("any's login successful")
         );
-        MatcherAssert.assertThat(
-            "Package was not installed successfully",
-            this.exec("conda", "build", "--output-folder", "./conda-out/", "./conda/"),
-            new StringContainsInOrder(
-                new ListOf<String>(
-                    "Creating package \"example-package\"", "Creating release \"0.0.1\"",
-                    // @checkstyle LineLengthCheck (1 line)
-                    "Uploading file \"any/example-package/0.0.1/linux-64/example-package-0.0.1-0.tar.bz2\"",
-                    "Upload complete", "conda package located at:"
-                )
-            )
-        );
-        MatcherAssert.assertThat(
-            "Package not found in storage",
-            this.storage.exists(new Key.From("linux-64/example-package-0.0.1-0.tar.bz2")).join(),
-            new IsEqual<>(true)
-        );
+        this.uploadAndCheck("0.0.1");
+        new TestResource("CondaSliceITCase/repodata.json")
+            .saveTo(this.storage, new Key.From("linux-64/repodata.json"));
+        this.uploadAndCheck("0.0.2");
     }
 
     @Test
@@ -190,5 +176,31 @@ public final class CondaSliceITCase {
     private void moveCondarc() throws IOException, InterruptedException {
         this.cntn.execInContainer("mv", "/home/.condarc", "/root/");
         this.cntn.execInContainer("rm", "/home/.condarc");
+    }
+
+    private void uploadAndCheck(final String version) throws Exception {
+        MatcherAssert.assertThat(
+            "Package was not installed successfully",
+            this.exec(
+                "conda", "build", "--output-folder",
+                String.format("./%s/conda-out/", version), String.format("./%s/conda/", version)
+            ),
+            new StringContainsInOrder(
+                new ListOf<String>(
+                    "Creating package \"example-package\"",
+                    String.format("Creating release \"%s\"", version),
+                    // @checkstyle LineLengthCheck (1 line)
+                    String.format("Uploading file \"any/example-package/%s/linux-64/example-package-%s-0.tar.bz2\"", version, version),
+                    "Upload complete", "conda package located at:"
+                )
+            )
+        );
+        MatcherAssert.assertThat(
+            "Package not found in storage",
+            this.storage.exists(
+                new Key.From(String.format("linux-64/example-package-%s-0.tar.bz2", version))
+            ).join(),
+            new IsEqual<>(true)
+        );
     }
 }

@@ -9,7 +9,6 @@ import com.artipie.http.Slice;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import com.artipie.http.rs.StandardRs;
 import com.artipie.http.rs.common.RsJson;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +34,7 @@ public final class PostStageCommitSlice implements Slice {
     /**
      * Regex to obtain uploaded package architecture and name from request line.
      */
-    private final static Pattern PKG = Pattern.compile(".*/(.*/.*(\\.tar\\.bz2|\\.conda))$");
+    private static final Pattern PKG = Pattern.compile(".*/(.*/.*(\\.tar\\.bz2|\\.conda))$");
 
     /**
      * Url to upload.
@@ -55,7 +54,7 @@ public final class PostStageCommitSlice implements Slice {
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
-        Response res;
+        final Response res;
         final Matcher matcher = PostStageCommitSlice.PKG.matcher(
             new RequestLineFrom(line).uri().getPath()
         );

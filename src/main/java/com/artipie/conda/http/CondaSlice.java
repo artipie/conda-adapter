@@ -12,8 +12,9 @@ import com.artipie.http.auth.BasicAuthSlice;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
 import com.artipie.http.rq.RqMethod;
+import com.artipie.http.rs.RsStatus;
+import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.rs.StandardRs;
-import com.artipie.http.rs.common.RsJson;
 import com.artipie.http.rt.ByMethodsRule;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
@@ -21,9 +22,6 @@ import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.http.slice.SliceSimple;
 import com.artipie.http.slice.SliceUpload;
-import java.nio.charset.StandardCharsets;
-import javax.json.Json;
-import org.cactoos.io.ReaderOf;
 
 /**
  * Main conda entry point.
@@ -60,8 +58,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.GET)
                     ),
                     new BasicAuthSlice(
-                        new DownloadRepodataSlice(storage),
-                        users,
+                        new DownloadRepodataSlice(storage), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
@@ -71,8 +68,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.GET)
                     ),
                     new BasicAuthSlice(
-                        new SliceDownload(storage),
-                        users,
+                        new SliceDownload(storage), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
@@ -92,42 +88,33 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new SliceUpload(storage),
-                        users,
+                        new SliceUpload(storage), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
                 new RtRulePath(
                     new RtRule.All(
-                        new RtRule.ByPath(".*(package|release).*"),
-                        new ByMethodsRule(RqMethod.GET)
+                        new RtRule.ByPath(".*(package|release).*"), new ByMethodsRule(RqMethod.GET)
                     ),
                     new BasicAuthSlice(
-                        new GetPackageSlice(),
-                        users,
+                        new GetPackageSlice(), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
                 new RtRulePath(
                     new RtRule.All(
-                        new RtRule.ByPath(".*(package|release).*"),
-                        new ByMethodsRule(RqMethod.POST)
+                        new RtRule.ByPath(".*(package|release).*"), new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new PostPackageReleaseSlice(),
-                        users,
+                        new PostPackageReleaseSlice(), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
                 new RtRulePath(new ByMethodsRule(RqMethod.HEAD), new SliceSimple(StandardRs.OK)),
                 new RtRulePath(
-                    new RtRule.All(
-                        new RtRule.ByPath("/user"),
-                        new ByMethodsRule(RqMethod.GET)
-                    ),
+                    new RtRule.All(new RtRule.ByPath("/user"), new ByMethodsRule(RqMethod.GET)),
                     new BasicAuthSlice(
-                        new GetUserSlice(),
-                        users,
+                        new GetUserSlice(), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
@@ -137,26 +124,25 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.GET)
                     ),
                     new BasicAuthSlice(
-                        new SliceSimple(
-                            new RsJson(
-                                () -> Json.createReader(
-                                    new ReaderOf("{\"authentication_type\": \"password\"}")
-                                ).read(),
-                                StandardCharsets.UTF_8
-                            )
-                        ),
-                        users,
+                        new AuthTypeSlice(), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
                 new RtRulePath(
                     new RtRule.All(
-                        new RtRule.ByPath(".*authentications$"),
-                        new ByMethodsRule(RqMethod.POST)
+                        new RtRule.ByPath(".*authentications$"), new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new AuthTokenSlice(),
-                        users,
+                        new AuthTokenSlice(), users,
+                        new Permission.ByName(perms, Action.Standard.WRITE)
+                    )
+                ),
+                new RtRulePath(
+                    new RtRule.All(
+                        new RtRule.ByPath(".*authentications$"), new ByMethodsRule(RqMethod.DELETE)
+                    ),
+                    new BasicAuthSlice(
+                        new SliceSimple(new RsWithStatus(RsStatus.CREATED)), users,
                         new Permission.ByName(perms, Action.Standard.WRITE)
                     )
                 ),

@@ -78,7 +78,7 @@ public final class CondaSliceITCase {
         final String url = String.format("http://host.testcontainers.internal:%d", this.port);
         this.server = new VertxSliceServer(
             CondaSliceITCase.VERTX,
-            new LoggingSlice(new CondaSlice(this.storage, url)),
+            new LoggingSlice(new BodyLoggingSlice(new CondaSlice(this.storage, url))),
             this.port
         );
         this.server.start();
@@ -102,15 +102,31 @@ public final class CondaSliceITCase {
         this.exec("conda", "install", "-y", "anaconda-client");
         this.exec(
             "anaconda", "config", "--set", "url",
-            String.format("http://host.testcontainers.internal:%d/", this.port),
-            "-s"
+            String.format("http://host.testcontainers.internal:%d/", this.port), "-s"
         );
         MatcherAssert.assertThat(
-            this.exec("anaconda", "login", "--username", "any", "--password", "any"),
+            this.exec("anaconda", "-v", "login", "--username", "any", "--password", "any"),
             new StringContainsInOrder(
                 new ListOf<>(
                     "Using Anaconda API: http://host.testcontainers.internal",
                     "any's login successful"
+                )
+            )
+        );
+        MatcherAssert.assertThat(
+            this.exec("anaconda", "logout"),
+            new StringContainsInOrder(
+                new ListOf<>(
+                    "Using Anaconda API: http://host.testcontainers.internal", "logout successful"
+                )
+            )
+        );
+        MatcherAssert.assertThat(
+            this.exec("anaconda", "-v", "login", "--username", "alice", "--password", "abc123"),
+            new StringContainsInOrder(
+                new ListOf<>(
+                    "Using Anaconda API: http://host.testcontainers.internal",
+                    "alice's login successful"
                 )
             )
         );

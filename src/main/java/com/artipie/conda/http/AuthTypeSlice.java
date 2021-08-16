@@ -14,20 +14,16 @@ import javax.json.Json;
 import org.reactivestreams.Publisher;
 
 /**
- * Slice for token authorization.
+ * Slice to serve on `/authentication-type`, returns stab json body.
  * @since 0.4
- * @todo #32:30min Implement this slice properly to return authorization token for user. It serves
- *  on `POST /authentications`. For more details check swagger api page:
- *  https://api.anaconda.org/docs#!/authentication/post_authentications
  */
-final class AuthTokenSlice implements Slice {
+final class AuthTypeSlice implements Slice {
 
     @Override
     public Response response(final String line, final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body) {
         return new RsJson(
-            () -> Json.createObjectBuilder().add("token", "ol-4ee312d8-9fe2-44d2-bea9-053325e1ffd5")
-                .build(),
+            () -> Json.createObjectBuilder().add("authentication_type", "password").build(),
             StandardCharsets.UTF_8
         );
     }

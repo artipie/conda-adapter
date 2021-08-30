@@ -42,7 +42,7 @@ public final class UpdateSlice implements Slice {
     /**
      * Regex to obtain uploaded package architecture and name from request line.
      */
-    private static final Pattern PKG = Pattern.compile(".*/((.*)/.*(\\.tar\\.bz2|\\.conda))$");
+    private static final Pattern PKG = Pattern.compile(".*/((.*)/(.*(\\.tar\\.bz2|\\.conda)))$");
 
     /**
      * Temporary upload key.
@@ -89,8 +89,9 @@ public final class UpdateSlice implements Slice {
                                     json -> new AstoMergedJson(
                                         this.asto, new Key.From(matcher.group(2), "repodata.json")
                                     ).merge(
+                                        // @checkstyle MagicNumberCheck (3 lines)
                                         new MapOf<String, JsonObject>(
-                                            new MapEntry<>(matcher.group(1), json)
+                                            new MapEntry<>(matcher.group(3), json)
                                         )
                                     )
                                 ).thenCompose(

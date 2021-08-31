@@ -148,7 +148,7 @@ public final class UpdateSlice implements Slice {
      *  method Content built with length. Content-Length of the file is provided in format:
      *  --multipart boundary
      *  Content-Disposition: form-data; name="Content-Length"
-     *
+     *  //empty line
      *  2123
      *  --multipart boundary
      *  ...

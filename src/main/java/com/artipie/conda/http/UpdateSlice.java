@@ -144,6 +144,16 @@ public final class UpdateSlice implements Slice {
      * @param headers Request headers
      * @param body Request body
      * @return File part as Publisher of ByteBuffer
+     * @todo #32:30min Obtain Content-Length from another multipart body part and return from this
+     *  method Content built with length. Content-Length of the file is provided in format:
+     *  --multipart boundary
+     *  Content-Disposition: form-data; name="Content-Length"
+     *
+     *  2123
+     *  --multipart boundary
+     *  ...
+     *  Multipart body format can be also checked in logs of
+     *  CondaSliceITCase#canPublishWithCondaBuild() test method.
      */
     private static Publisher<ByteBuffer> filePart(final Headers headers,
         final Publisher<ByteBuffer> body) {

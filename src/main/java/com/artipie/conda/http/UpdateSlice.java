@@ -11,12 +11,16 @@ import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.misc.UncheckedIOScalar;
 import com.artipie.conda.asto.AstoMergedJson;
 import com.artipie.conda.meta.InfoIndex;
+import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.async.AsyncResponse;
+import com.artipie.http.headers.ContentDisposition;
 import com.artipie.http.rq.RequestLineFrom;
+import com.artipie.http.rq.multipart.RqMultipart;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
+import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -80,7 +84,12 @@ public final class UpdateSlice implements Slice {
                                 new RsWithStatus(RsStatus.BAD_REQUEST)
                             );
                         } else {
-                            resp = this.asto.save(temp, new Content.From(body)).thenCompose(
+                            resp = this.asto.save(
+                                temp,
+                                new Content.From(
+                                    UpdateSlice.filePart(new Headers.From(headers), body)
+                                )
+                            ).thenCompose(
                                 empty -> this.asto.value(temp).thenCompose(
                                     val -> new PublisherAs(val).bytes().thenApply(
                                         bytes -> UpdateSlice.obtainInfoJson(matcher.group(1), bytes)
@@ -128,5 +137,19 @@ public final class UpdateSlice implements Slice {
         return Json.createObjectBuilder(new UncheckedIOScalar<>(info::json).value())
             .add("md5", DigestUtils.md5Hex(bytes))
             .add("sha256", DigestUtils.sha256Hex(bytes)).build();
+    }
+
+    /**
+     * Obtain file part from multipart body.
+     * @param headers Request headers
+     * @param body Request body
+     * @return File part as Publisher of ByteBuffer
+     */
+    private static Publisher<ByteBuffer> filePart(final Headers headers,
+        final Publisher<ByteBuffer> body) {
+        return Flowable.fromPublisher(
+            new RqMultipart(headers, body)
+                .filter(hdrs -> new ContentDisposition(hdrs).fieldName().equals("file"))
+        ).flatMap(part -> part);
     }
 }

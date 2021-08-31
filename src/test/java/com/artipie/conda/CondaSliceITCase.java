@@ -150,8 +150,6 @@ public final class CondaSliceITCase {
             new StringContains("any's login successful")
         );
         this.uploadAndCheck("0.0.1");
-        new TestResource("CondaSliceITCase/repodata.json")
-            .saveTo(this.storage, new Key.From("linux-64/repodata.json"));
         this.uploadAndCheck("0.0.2");
     }
 

@@ -21,7 +21,6 @@ import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.http.slice.SliceSimple;
-import com.artipie.http.slice.SliceUpload;
 
 /**
  * Main conda entry point.
@@ -88,7 +87,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new SliceUpload(storage), users,
+                        new UpdateSlice(storage), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),

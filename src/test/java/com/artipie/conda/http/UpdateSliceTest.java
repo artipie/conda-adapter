@@ -11,11 +11,14 @@ import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.asto.test.TestResource;
 import com.artipie.http.Headers;
+import com.artipie.http.headers.ContentType;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.hm.SliceHasResponse;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
@@ -35,6 +38,13 @@ import org.skyscreamer.jsonassert.JSONAssert;
 class UpdateSliceTest {
 
     /**
+     * Test headers.
+     */
+    private static final Headers HEADERS = new Headers.From(
+        new ContentType("multipart/form-data; boundary=\"simple boundary\"")
+    );
+
+    /**
      * Test storage.
      */
     private Storage asto;
@@ -49,7 +59,8 @@ class UpdateSliceTest {
         "anaconda-navigator-1.8.4-py35_0.tar.bz2,addsPackageToEmptyRepo-1.json",
         "7zip-19.00-h59b6b97_2.conda,addsPackageToEmptyRepo-2.json"
     })
-    void addsPackageToEmptyRepo(final String name, final String result) throws JSONException {
+    void addsPackageToEmptyRepo(final String name, final String result) throws JSONException,
+        IOException {
         final Key key = new Key.From("linux-64", name);
         MatcherAssert.assertThat(
             "Slice returned 201 CREATED",
@@ -57,8 +68,8 @@ class UpdateSliceTest {
             new SliceHasResponse(
                 new RsHasStatus(RsStatus.CREATED),
                 new RequestLine(RqMethod.POST, String.format("/%s", key.string())),
-                Headers.EMPTY,
-                new Content.From(new TestResource(name).asBytes())
+                UpdateSliceTest.HEADERS,
+                new Content.From(this.body(new TestResource(name).asBytes()))
             )
         );
         MatcherAssert.assertThat(
@@ -82,7 +93,8 @@ class UpdateSliceTest {
         "anaconda-navigator-1.8.4-py35_0.tar.bz2,addsPackageToEmptyRepo-2.json",
         "7zip-19.00-h59b6b97_2.conda,addsPackageToEmptyRepo-1.json"
     })
-    void addsPackageToRepo(final String name, final String index) throws JSONException {
+    void addsPackageToRepo(final String name, final String index) throws JSONException,
+        IOException {
         final Key arch = new Key.From("linux-64");
         final Key key = new Key.From(arch, name);
         this.asto.save(
@@ -95,8 +107,8 @@ class UpdateSliceTest {
             new SliceHasResponse(
                 new RsHasStatus(RsStatus.CREATED),
                 new RequestLine(RqMethod.POST, String.format("/%s", key.string())),
-                Headers.EMPTY,
-                new Content.From(new TestResource(name).asBytes())
+                UpdateSliceTest.HEADERS,
+                new Content.From(this.body(new TestResource(name).asBytes()))
             )
         );
         MatcherAssert.assertThat(
@@ -137,6 +149,23 @@ class UpdateSliceTest {
                 new RequestLine(RqMethod.PUT, String.format("/%s", key))
             )
         );
+    }
+
+    private byte[] body(final byte[] file) throws IOException {
+        final ByteArrayOutputStream body = new ByteArrayOutputStream();
+        body.write(
+            String.join(
+                "\r\n",
+                "Ignored preamble",
+                "--simple boundary",
+                "Content-Disposition: form-data; name=\"file\"",
+                "",
+                ""
+            ).getBytes(StandardCharsets.US_ASCII)
+        );
+        body.write(file);
+        body.write("\r\n--simple boundary--".getBytes(StandardCharsets.US_ASCII));
+        return body.toByteArray();
     }
 
 }

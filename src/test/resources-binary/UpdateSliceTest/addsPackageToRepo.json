@@ -24,6 +24,7 @@
       "subdir": "linux-64",
       "timestamp": 1524671586445,
       "version": "1.8.4",
+      "size":4945616,
       "md5": "59d3f961b42514317356f3de172d2fec",
       "sha256": "e913054e89f0a38cd0c9c02940a297da9275022ee062eec9b6c60dc991ecb58a"
     }
@@ -46,6 +47,7 @@
       "subdir": "win-64",
       "timestamp": 1619516322562,
       "version": "19.00",
+      "size":1038932,
       "md5": "894aa30299e976ce59fbf418da258cb2",
       "sha256": "c42631a38255a13181787c3475b27933fe71609a94346bab67e7138d4aae8f0b"
     }

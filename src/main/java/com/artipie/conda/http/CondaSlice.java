@@ -4,6 +4,7 @@
  */
 package com.artipie.conda.http;
 
+import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.http.Slice;
 import com.artipie.http.auth.Action;
@@ -19,8 +20,12 @@ import com.artipie.http.rt.ByMethodsRule;
 import com.artipie.http.rt.RtRule;
 import com.artipie.http.rt.RtRulePath;
 import com.artipie.http.rt.SliceRoute;
+import com.artipie.http.slice.KeyFromPath;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.http.slice.SliceSimple;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Main conda entry point.
@@ -29,6 +34,11 @@ import com.artipie.http.slice.SliceSimple;
  */
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveMethodLength"})
 public final class CondaSlice extends Slice.Wrap {
+
+    /**
+     * Transform pattern for download slice.
+     */
+    private static final Pattern PTRN = Pattern.compile(".*/(.*/.*(\\.tar\\.bz2|\\.conda))$");
 
     /**
      * Ctor.
@@ -67,7 +77,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new ByMethodsRule(RqMethod.GET)
                     ),
                     new BasicAuthSlice(
-                        new SliceDownload(storage), users,
+                        new SliceDownload(storage, CondaSlice.transform()), users,
                         new Permission.ByName(perms, Action.Standard.READ)
                     )
                 ),
@@ -148,5 +158,24 @@ public final class CondaSlice extends Slice.Wrap {
                 new RtRulePath(RtRule.FALLBACK, new SliceSimple(StandardRs.NOT_FOUND))
             )
         );
+    }
+
+    /**
+     * Function to transform path to download conda package. Conda client can perform requests
+     * for download with user token:
+     * /t/user-token/linux-64/some-package.tar.bz2
+     * @return Function to transform path to key
+     */
+    private static Function<String, Key> transform() {
+        return path -> {
+            final Matcher mtchr = PTRN.matcher(path);
+            final Key res;
+            if (mtchr.matches()) {
+                res = new Key.From(mtchr.group(1));
+            } else {
+                res = new KeyFromPath(path);
+            }
+            return res;
+        };
     }
 }

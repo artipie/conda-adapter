@@ -135,6 +135,7 @@ public final class UpdateSlice implements Slice {
             info = new InfoIndex.TarBz(inp);
         }
         return Json.createObjectBuilder(new UncheckedIOScalar<>(info::json).value())
+            .add("size", bytes.length)
             .add("md5", DigestUtils.md5Hex(bytes))
             .add("sha256", DigestUtils.sha256Hex(bytes)).build();
     }

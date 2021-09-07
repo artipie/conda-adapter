@@ -95,11 +95,13 @@ public final class CondaSliceITCase {
             .withWorkingDirectory("/home/")
             .withFileSystemBind(this.tmp.toString(), "/home");
         this.cntn.start();
+        this.exec("conda", "install", "-y", "conda-build");
+        this.exec("conda", "install", "-y", "conda-verify");
+        this.exec("conda", "install", "-y", "anaconda-client");
     }
 
     @Test
     void anacondaCanLogin() throws Exception {
-        this.exec("conda", "install", "-y", "anaconda-client");
         this.exec(
             "anaconda", "config", "--set", "url",
             String.format("http://host.testcontainers.internal:%d/", this.port), "-s"
@@ -133,10 +135,7 @@ public final class CondaSliceITCase {
     }
 
     @Test
-    void canPublishWithCondaBuild() throws Exception {
-        this.exec("conda", "install", "-y", "conda-build");
-        this.exec("conda", "install", "-y", "conda-verify");
-        this.exec("conda", "install", "-y", "anaconda-client");
+    void canPublishTwoVersionsWithCondaBuildAndThenInstall() throws Exception {
         this.moveCondarc();
         this.exec(
             "anaconda", "config", "--set", "url",
@@ -151,10 +150,22 @@ public final class CondaSliceITCase {
         );
         this.uploadAndCheck("0.0.1");
         this.uploadAndCheck("0.0.2");
+        MatcherAssert.assertThat(
+            "Example-package 0.0.2 was not installed",
+            exec("conda", "install", "--verbose", "-y", "example-package"),
+            new StringContainsInOrder(
+                new ListOf<String>(
+                    "The following packages will be downloaded:",
+                    "http://host.testcontainers.internal",
+                    "linux-64::example-package-0.0.2-0",
+                    "Executing transaction: ...working... done"
+                )
+            )
+        );
     }
 
     @Test
-    void canInstall() throws Exception {
+    void canInstallWithCondaInstall() throws Exception {
         this.moveCondarc();
         new TestResource("CondaSliceITCase/packages.json")
             .saveTo(this.storage, new Key.From("linux-64/repodata.json"));

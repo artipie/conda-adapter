@@ -75,7 +75,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>v0.22</version>
+      <version>v0.23</version>
     </dependency>
     <dependency>
       <groupId>org.cqfn</groupId>

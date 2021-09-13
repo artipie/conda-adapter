@@ -59,6 +59,28 @@ class TokenAuthSchemeTest {
         );
     }
 
+    @Test
+    void doesNotAuthorizeByWrongTokenInHeader() {
+        MatcherAssert.assertThat(
+            new TokenAuthScheme(new TestTokenAuth()).authenticate(
+                new Headers.From(new Authorization.Token("098xyz")),
+                "GET /ignored HTTP/1.1"
+            ).toCompletableFuture().join().user().isPresent(),
+            new IsEqual<>(false)
+        );
+    }
+
+    @Test
+    void doesNotAuthorizeByWrongTokenInRqLine() {
+        MatcherAssert.assertThat(
+            new TokenAuthScheme(new TestTokenAuth()).authenticate(
+                Headers.EMPTY,
+                "GET /t/any/my-conda/repodata.json HTTP/1.1"
+            ).toCompletableFuture().join().user().isPresent(),
+            new IsEqual<>(false)
+        );
+    }
+
     /**
      * Test token auth.
      * @since 0.5

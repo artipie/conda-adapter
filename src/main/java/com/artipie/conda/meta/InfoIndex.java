@@ -8,6 +8,7 @@ import com.artipie.ArtipieException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -58,6 +59,7 @@ public interface InfoIndex {
         @Override
         @SuppressWarnings("PMD.AssignmentInOperand")
         public JsonObject json() throws IOException {
+            Optional<JsonObject> res = Optional.empty();
             try (
                 TarArchiveInputStream archive = new TarArchiveInputStream(
                     new BZip2CompressorInputStream(this.input)
@@ -69,11 +71,15 @@ public interface InfoIndex {
                         continue;
                     }
                     if (InfoIndex.FILE_NAME.equals(entry.getName())) {
-                        return Json.createReader(archive).readObject();
+                        res = Optional.of(Json.createReader(archive).readObject());
                     }
                 }
             }
-            throw new ArtipieException("Illegal package .tar.bz2: info/index.json file not found");
+            return res.orElseThrow(
+                () -> new ArtipieException(
+                    "Illegal package .tar.bz2: info/index.json file not found"
+                )
+            );
         }
     }
 
@@ -100,6 +106,7 @@ public interface InfoIndex {
         @Override
         @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AssignmentInOperand"})
         public JsonObject json() throws IOException {
+            Optional<JsonObject> res = Optional.empty();
             try (
                 ArchiveInputStream archive = new ArchiveStreamFactory().createArchiveInputStream(
                     new BufferedInputStream(this.input)
@@ -120,7 +127,7 @@ public interface InfoIndex {
                                 continue;
                             }
                             if (InfoIndex.FILE_NAME.equals(entry.getName())) {
-                                return Json.createReader(info).readObject();
+                                res = Optional.of(Json.createReader(info).readObject());
                             }
                         }
                     }
@@ -128,7 +135,11 @@ public interface InfoIndex {
             } catch (final ArchiveException ex) {
                 throw new IOException(ex);
             }
-            throw new ArtipieException("Illegal package `.conda`: info/index.json file not found");
+            return res.orElseThrow(
+                () -> new ArtipieException(
+                    "Illegal package `.conda`: info/index.json file not found"
+                )
+            );
         }
     }
 }

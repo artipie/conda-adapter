@@ -7,8 +7,10 @@ package com.artipie.conda.http;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
+import com.artipie.asto.ext.ContentDigest;
+import com.artipie.asto.ext.Digests;
 import com.artipie.asto.misc.UncheckedIOScalar;
+import com.artipie.asto.streams.ContentAsStream;
 import com.artipie.conda.asto.AstoMergedJson;
 import com.artipie.conda.meta.InfoIndex;
 import com.artipie.http.Headers;
@@ -21,9 +23,8 @@ import com.artipie.http.rq.multipart.RqMultipart;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import io.reactivex.Flowable;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -31,7 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.apache.commons.codec.digest.DigestUtils;
+import javax.json.JsonObjectBuilder;
 import org.cactoos.map.MapEntry;
 import org.cactoos.map.MapOf;
 import org.reactivestreams.Publisher;
@@ -89,12 +90,12 @@ public final class UpdateSlice implements Slice {
                                 new Content.From(
                                     UpdateSlice.filePart(new Headers.From(headers), body)
                                 )
-                            ).thenCompose(
-                                empty -> this.asto.value(temp).thenCompose(
-                                    val -> new PublisherAs(val).bytes().thenApply(
-                                        bytes -> UpdateSlice.obtainInfoJson(matcher.group(1), bytes)
-                                    )
-                                ).thenCompose(
+                            )
+                                .thenCompose(empty -> this.infoJson(matcher.group(1), temp))
+                                .thenCompose(json -> this.addChecksum(temp, Digests.MD5, json))
+                                .thenCompose(json -> this.addChecksum(temp, Digests.SHA256, json))
+                                .thenApply(JsonObjectBuilder::build)
+                                .thenCompose(
                                     json -> new AstoMergedJson(
                                         this.asto, new Key.From(matcher.group(2), "repodata.json")
                                     ).merge(
@@ -107,8 +108,7 @@ public final class UpdateSlice implements Slice {
                                     ignored -> this.asto.move(temp, new Key.From(matcher.group(1)))
                                 ).thenApply(
                                     ignored -> new RsWithStatus(RsStatus.CREATED)
-                                )
-                            );
+                                );
                         }
                         return resp;
                     }
@@ -121,23 +121,39 @@ public final class UpdateSlice implements Slice {
     }
 
     /**
-     * Get info index json from uploaded package bytes.
-     * @param name Package name
-     * @param bytes Package bytes
-     * @return JsonObject with package info
+     * Adds checksum of the package to json.
+     * @param key Package key
+     * @param alg Digest algorithm
+     * @param json Json to add value to
+     * @return JsonObjectBuilder with added checksum as completion action
      */
-    private static JsonObject obtainInfoJson(final String name, final byte[] bytes) {
-        final InfoIndex info;
-        final InputStream inp = new ByteArrayInputStream(bytes);
-        if (name.endsWith("conda")) {
-            info = new InfoIndex.Conda(inp);
-        } else {
-            info = new InfoIndex.TarBz(inp);
-        }
-        return Json.createObjectBuilder(new UncheckedIOScalar<>(info::json).value())
-            .add("size", bytes.length)
-            .add("md5", DigestUtils.md5Hex(bytes))
-            .add("sha256", DigestUtils.sha256Hex(bytes)).build();
+    private CompletionStage<JsonObjectBuilder> addChecksum(final Key key, final Digests alg,
+        final JsonObjectBuilder json) {
+        return this.asto.value(key).thenCompose(val -> new ContentDigest(val, alg).hex())
+            .thenApply(hex -> json.add(alg.name().toLowerCase(Locale.US), hex));
+    }
+
+    /**
+     * Get info index json from uploaded package.
+     * @param name Package name
+     * @param key Package input stream
+     * @return JsonObjectBuilder with package info as completion action
+     */
+    private CompletionStage<JsonObjectBuilder> infoJson(final String name, final Key key) {
+        return this.asto.value(key).thenCompose(
+            val -> new ContentAsStream<JsonObjectBuilder>(val).process(
+                input -> {
+                    final InfoIndex info;
+                    if (name.endsWith("conda")) {
+                        info = new InfoIndex.Conda(input);
+                    } else {
+                        info = new InfoIndex.TarBz(input);
+                    }
+                    return Json.createObjectBuilder(new UncheckedIOScalar<>(info::json).value())
+                        .add("size", val.size().get());
+                }
+            )
+        );
     }
 
     /**

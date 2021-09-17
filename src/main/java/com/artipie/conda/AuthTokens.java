@@ -4,10 +4,11 @@
  */
 package com.artipie.conda;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
-import javax.json.JsonObject;
 
 /**
  * Authentication tokens.
@@ -59,13 +60,26 @@ public interface AuthTokens {
 
         /**
          * Ctor.
+         * @param uname Name of the user
+         * @param token Token
+         * @param expire Expiration date
+         */
+        public TokenItem(final String uname, final String token, final Instant expire) {
+            this.uname = uname;
+            this.token = token;
+            this.expire = expire;
+        }
+
+        /**
+         * Ctor.
          * @param token Token
          * @param info Token info in json format
          */
-        public TokenItem(final String token, final JsonObject info) {
-            this.token = token;
-            this.uname = info.getString("name");
-            this.expire = Instant.ofEpochMilli(info.getJsonNumber("expire").longValue());
+        public TokenItem(final String token, final ObjectNode info) {
+            this(
+                info.get("name").textValue(), token,
+                Instant.ofEpochMilli(info.get("expire").longValue())
+            );
         }
 
         /**
@@ -81,8 +95,28 @@ public interface AuthTokens {
          * @return True if yes
          */
         public boolean expired() {
-            return this.expire.compareTo(Instant.now()) > 0;
+            return this.expire.compareTo(Instant.now()) < 0;
         }
 
+        @Override
+        public boolean equals(final Object other) {
+            final boolean res;
+            if (this == other) {
+                res = true;
+            } else if (other == null || this.getClass() != other.getClass()) {
+                res = false;
+            } else {
+                final TokenItem item = (TokenItem) other;
+                res = this.uname.equals(item.uname)
+                    && this.token.equals(item.token)
+                    && this.expire.equals(item.expire);
+            }
+            return res;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.uname, this.token, this.expire);
+        }
     }
 }

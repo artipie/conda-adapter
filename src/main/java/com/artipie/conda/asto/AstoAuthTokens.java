@@ -4,10 +4,20 @@
  */
 package com.artipie.conda.asto;
 
+import com.artipie.asto.ArtipieIOException;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.streams.ContentAsStream;
 import com.artipie.conda.AuthTokens;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -34,7 +44,7 @@ public final class AstoAuthTokens implements AuthTokens {
     /**
      * Tokens storage item key.
      */
-    private static final Key TKNS = new Key.From(".tokens.json");
+    static final Key TKNS = new Key.From(".tokens.json");
 
     /**
      * Abstract storage.
@@ -58,7 +68,20 @@ public final class AstoAuthTokens implements AuthTokens {
 
     @Override
     public CompletionStage<Optional<TokenItem>> get(final String token) {
-        return null;
+        return this.asto.exists(AstoAuthTokens.TKNS).thenCompose(
+            exists -> {
+                CompletionStage<Optional<TokenItem>> res =
+                    CompletableFuture.completedFuture(Optional.empty());
+                if (exists) {
+                    res = this.asto.value(AstoAuthTokens.TKNS).thenCompose(
+                        pub -> new ContentAsStream<Optional<TokenItem>>(pub).process(
+                            input -> AstoAuthTokens.find(input, token)
+                        )
+                    );
+                }
+                return res;
+            }
+        );
     }
 
     @Override
@@ -69,5 +92,35 @@ public final class AstoAuthTokens implements AuthTokens {
     @Override
     public CompletionStage<String> generate(final String name) {
         return null;
+    }
+
+    /**
+     * Find token item to by token string.
+     * @param input Input stream with json file
+     * @param token Token to search for
+     * @return Token item if found
+     */
+    @SuppressWarnings("PMD.AssignmentInOperand")
+    private static Optional<TokenItem> find(final InputStream input, final String token) {
+        try {
+            final JsonParser parser = new JsonFactory().createParser(input);
+            JsonToken jtoken;
+            Optional<TokenItem> result = Optional.empty();
+            while ((jtoken = parser.nextToken()) != null) {
+                if (jtoken == JsonToken.FIELD_NAME && parser.getCurrentName().equals(token)) {
+                    parser.nextToken();
+                    parser.setCodec(new ObjectMapper());
+                    final TokenItem item = new TokenItem(
+                        token, parser.<ObjectNode>readValueAsTree()
+                    );
+                    if (!item.expired()) {
+                        result = Optional.of(item);
+                    }
+                }
+            }
+            return result;
+        } catch (final IOException err) {
+            throw new ArtipieIOException(err);
+        }
     }
 }

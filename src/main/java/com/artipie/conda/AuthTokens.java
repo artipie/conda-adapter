@@ -25,10 +25,10 @@ public interface AuthTokens {
 
     /**
      * Find valid token item by username.
-     * @param token Token
+     * @param username Name of the user
      * @return Full token info if found and is not expired
      */
-    CompletionStage<Optional<TokenItem>> find(String token);
+    CompletionStage<Optional<TokenItem>> find(String username);
 
     /**
      * Generates token for username.
@@ -60,13 +60,13 @@ public interface AuthTokens {
 
         /**
          * Ctor.
-         * @param uname Name of the user
          * @param token Token
+         * @param uname Name of the user
          * @param expire Expiration date
          */
-        public TokenItem(final String uname, final String token, final Instant expire) {
-            this.uname = uname;
+        public TokenItem(final String token, final String uname, final Instant expire) {
             this.token = token;
+            this.uname = uname;
             this.expire = expire;
         }
 
@@ -77,7 +77,7 @@ public interface AuthTokens {
          */
         public TokenItem(final String token, final ObjectNode info) {
             this(
-                info.get("name").textValue(), token,
+                token, info.get("name").textValue(),
                 Instant.ofEpochMilli(info.get("expire").longValue())
             );
         }
@@ -116,7 +116,7 @@ public interface AuthTokens {
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.uname, this.token, this.expire);
+            return Objects.hash(this.uname, this.expire);
         }
     }
 }

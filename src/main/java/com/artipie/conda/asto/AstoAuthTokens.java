@@ -85,7 +85,7 @@ public final class AstoAuthTokens implements AuthTokens {
     }
 
     @Override
-    public CompletionStage<Optional<TokenItem>> find(final String token) {
+    public CompletionStage<Optional<TokenItem>> find(final String username) {
         return null;
     }
 

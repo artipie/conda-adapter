@@ -116,7 +116,7 @@ public interface AuthTokens {
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.uname, this.expire);
+            return Objects.hash(this.token, this.uname, this.expire);
         }
     }
 }

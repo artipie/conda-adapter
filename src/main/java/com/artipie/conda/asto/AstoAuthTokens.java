@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
  * Asto implementation of {@link AuthTokens}: adds/updates tokens in storage. Tokens
@@ -68,25 +69,12 @@ public final class AstoAuthTokens implements AuthTokens {
 
     @Override
     public CompletionStage<Optional<TokenItem>> get(final String token) {
-        return this.asto.exists(AstoAuthTokens.TKNS).thenCompose(
-            exists -> {
-                CompletionStage<Optional<TokenItem>> res =
-                    CompletableFuture.completedFuture(Optional.empty());
-                if (exists) {
-                    res = this.asto.value(AstoAuthTokens.TKNS).thenCompose(
-                        pub -> new ContentAsStream<Optional<TokenItem>>(pub).process(
-                            input -> AstoAuthTokens.find(input, token)
-                        )
-                    );
-                }
-                return res;
-            }
-        );
+        return this.checkAndFind(AstoAuthTokens.findByToken(token));
     }
 
     @Override
     public CompletionStage<Optional<TokenItem>> find(final String username) {
-        return null;
+        return this.checkAndFind(AstoAuthTokens.findByUsername(username));
     }
 
     @Override
@@ -95,32 +83,88 @@ public final class AstoAuthTokens implements AuthTokens {
     }
 
     /**
+     * Checks whether .token.json exists and applies provided functions to find token.
+     * @param action Function to search for token
+     * @return Token if found as completion result
+     */
+    private CompletionStage<Optional<TokenItem>> checkAndFind(
+        final Function<InputStream, Optional<TokenItem>> action
+    ) {
+        return this.asto.exists(AstoAuthTokens.TKNS).thenCompose(
+            exists -> {
+                CompletionStage<Optional<TokenItem>> res =
+                    CompletableFuture.completedFuture(Optional.empty());
+                if (exists) {
+                    res = this.asto.value(AstoAuthTokens.TKNS).thenCompose(
+                        pub -> new ContentAsStream<Optional<TokenItem>>(pub).process(action)
+                    );
+                }
+                return res;
+            }
+        );
+    }
+
+    /**
      * Find token item to by token string.
-     * @param input Input stream with json file
      * @param token Token to search for
      * @return Token item if found
      */
     @SuppressWarnings("PMD.AssignmentInOperand")
-    private static Optional<TokenItem> find(final InputStream input, final String token) {
-        try {
-            final JsonParser parser = new JsonFactory().createParser(input);
-            JsonToken jtoken;
-            Optional<TokenItem> result = Optional.empty();
-            while ((jtoken = parser.nextToken()) != null) {
-                if (jtoken == JsonToken.FIELD_NAME && parser.getCurrentName().equals(token)) {
-                    parser.nextToken();
-                    parser.setCodec(new ObjectMapper());
-                    final TokenItem item = new TokenItem(
-                        token, parser.<ObjectNode>readValueAsTree()
-                    );
-                    if (!item.expired()) {
-                        result = Optional.of(item);
+    private static Function<InputStream, Optional<TokenItem>> findByToken(final String token) {
+        return input -> {
+            try {
+                final JsonParser parser = new JsonFactory().createParser(input);
+                JsonToken jtoken;
+                Optional<TokenItem> result = Optional.empty();
+                while ((jtoken = parser.nextToken()) != null) {
+                    if (jtoken == JsonToken.FIELD_NAME && parser.getCurrentName().equals(token)) {
+                        parser.nextToken();
+                        parser.setCodec(new ObjectMapper());
+                        final TokenItem item = new TokenItem(
+                            token, parser.<ObjectNode>readValueAsTree()
+                        );
+                        if (!item.expired()) {
+                            result = Optional.of(item);
+                        }
                     }
                 }
+                return result;
+            } catch (final IOException err) {
+                throw new ArtipieIOException(err);
             }
-            return result;
-        } catch (final IOException err) {
-            throw new ArtipieIOException(err);
-        }
+        };
+    }
+
+    /**
+     * Searches not expired token item to by user name.
+     * @param name Name of the user
+     * @return Token item if found
+     */
+    @SuppressWarnings("PMD.AssignmentInOperand")
+    private static Function<InputStream, Optional<TokenItem>> findByUsername(final String name) {
+        return input -> {
+            try {
+                final JsonParser parser = new JsonFactory().createParser(input);
+                JsonToken jtoken;
+                Optional<TokenItem> result = Optional.empty();
+                while ((jtoken = parser.nextToken()) != null) {
+                    if (jtoken == JsonToken.FIELD_NAME
+                        && !parser.getCurrentName().equals("tokens")) {
+                        final String token = parser.getCurrentName();
+                        parser.nextToken();
+                        parser.setCodec(new ObjectMapper());
+                        final TokenItem item = new TokenItem(
+                            token, parser.<ObjectNode>readValueAsTree()
+                        );
+                        if (name.equals(item.userName()) && !item.expired()) {
+                            result = Optional.of(item);
+                        }
+                    }
+                }
+                return result;
+            } catch (final IOException err) {
+                throw new ArtipieIOException(err);
+            }
+        };
     }
 }

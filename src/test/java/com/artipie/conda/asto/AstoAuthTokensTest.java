@@ -22,6 +22,11 @@ import org.junit.jupiter.api.Test;
 class AstoAuthTokensTest {
 
     /**
+     * Test resource path.
+     */
+    private static final String TOKENS_JSON = "AstoAuthTokensTest/tokens.json";
+
+    /**
      * Test storage.
      */
     private Storage asto;
@@ -41,8 +46,17 @@ class AstoAuthTokensTest {
     }
 
     @Test
+    void returnsEmptyByUsernameIfTokensDoNotExist() {
+        MatcherAssert.assertThat(
+            new AstoAuthTokens(this.asto, "1 day").find("Any").toCompletableFuture()
+                .join().isPresent(),
+            new IsEqual<>(false)
+        );
+    }
+
+    @Test
     void returnsTokenWhenFound() {
-        new TestResource("AstoAuthTokensTest/tokens.json").saveTo(this.asto, AstoAuthTokens.TKNS);
+        new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
         final String token = "abc123";
         MatcherAssert.assertThat(
             new AstoAuthTokens(this.asto, "1 year").get(token).toCompletableFuture()
@@ -55,10 +69,34 @@ class AstoAuthTokensTest {
     }
 
     @Test
+    void returnsTokenByUsernameWhenFound() {
+        new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
+        final String name = "alice";
+        MatcherAssert.assertThat(
+            new AstoAuthTokens(this.asto, "1 year").find(name).toCompletableFuture()
+                .join().get(),
+            new IsEqual<>(
+                // @checkstyle MagicNumberCheck (1 line)
+                new AuthTokens.TokenItem("abc123", name, Instant.ofEpochMilli(4_108_568_400_000L))
+            )
+        );
+    }
+
+    @Test
     void returnsEmptyWhenExpired() {
-        new TestResource("AstoAuthTokensTest/tokens.json").saveTo(this.asto, AstoAuthTokens.TKNS);
+        new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
         MatcherAssert.assertThat(
             new AstoAuthTokens(this.asto, "1 month").get("xyz098").toCompletableFuture()
+                .join().isPresent(),
+            new IsEqual<>(false)
+        );
+    }
+
+    @Test
+    void returnsEmptyByUsernameWhenExpired() {
+        new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
+        MatcherAssert.assertThat(
+            new AstoAuthTokens(this.asto, "1 month").find("John").toCompletableFuture()
                 .join().isPresent(),
             new IsEqual<>(false)
         );

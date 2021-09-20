@@ -49,7 +49,7 @@ class AstoAuthTokensTest {
                 .join().get(),
             new IsEqual<>(
                 // @checkstyle MagicNumberCheck (1 line)
-                new AuthTokens.TokenItem("alice", token, Instant.ofEpochMilli(4_108_568_400_000L))
+                new AuthTokens.TokenItem(token, "alice", Instant.ofEpochMilli(4_108_568_400_000L))
             )
         );
     }

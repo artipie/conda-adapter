@@ -58,7 +58,7 @@ public final class AstoAuthTokens implements AuthTokens {
     /**
      * Tokens json field name.
      */
-    private static final String TOKENS = "tokens";
+    static final String TOKENS = "tokens";
 
     /**
      * Token length.

@@ -50,7 +50,7 @@ class AstoAuthTokensTest {
     @Test
     void returnsEmptyIfTokensDoNotExist() {
         MatcherAssert.assertThat(
-            new AstoAuthTokens(this.asto, "1 day").get("000").toCompletableFuture()
+            new AstoAuthTokens(this.asto).get("000").toCompletableFuture()
                 .join().isPresent(),
             new IsEqual<>(false)
         );
@@ -59,8 +59,7 @@ class AstoAuthTokensTest {
     @Test
     void returnsEmptyByUsernameIfTokensDoNotExist() {
         MatcherAssert.assertThat(
-            new AstoAuthTokens(this.asto, "1 day").find("Any").toCompletableFuture()
-                .join().isPresent(),
+            new AstoAuthTokens(this.asto).find("Any").toCompletableFuture().join().isPresent(),
             new IsEqual<>(false)
         );
     }
@@ -70,8 +69,7 @@ class AstoAuthTokensTest {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
         final String token = "abc123";
         MatcherAssert.assertThat(
-            new AstoAuthTokens(this.asto, "1 year").get(token).toCompletableFuture()
-                .join().get(),
+            new AstoAuthTokens(this.asto).get(token).toCompletableFuture().join().get(),
             new IsEqual<>(
                 // @checkstyle MagicNumberCheck (1 line)
                 new AuthTokens.TokenItem(token, "alice", Instant.ofEpochMilli(4_108_568_400_000L))
@@ -84,8 +82,7 @@ class AstoAuthTokensTest {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
         final String name = "alice";
         MatcherAssert.assertThat(
-            new AstoAuthTokens(this.asto, "1 year").find(name).toCompletableFuture()
-                .join().get(),
+            new AstoAuthTokens(this.asto).find(name).toCompletableFuture().join().get(),
             new IsEqual<>(
                 // @checkstyle MagicNumberCheck (1 line)
                 new AuthTokens.TokenItem("abc123", name, Instant.ofEpochMilli(4_108_568_400_000L))
@@ -97,8 +94,7 @@ class AstoAuthTokensTest {
     void returnsEmptyWhenExpired() {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
         MatcherAssert.assertThat(
-            new AstoAuthTokens(this.asto, "1 month").get("xyz098").toCompletableFuture()
-                .join().isPresent(),
+            new AstoAuthTokens(this.asto).get("xyz098").toCompletableFuture().join().isPresent(),
             new IsEqual<>(false)
         );
     }
@@ -107,8 +103,7 @@ class AstoAuthTokensTest {
     void returnsEmptyByUsernameWhenExpired() {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
         MatcherAssert.assertThat(
-            new AstoAuthTokens(this.asto, "1 month").find("John").toCompletableFuture()
-                .join().isPresent(),
+            new AstoAuthTokens(this.asto).find("John").toCompletableFuture().join().isPresent(),
             new IsEqual<>(false)
         );
     }
@@ -116,12 +111,11 @@ class AstoAuthTokensTest {
     @Test
     void generatesTokenWhenTokensExist() {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
-        final String token =
-            new AstoAuthTokens(this.asto, "P365D").generate("Jane").toCompletableFuture().join();
+        final String token = new AstoAuthTokens(this.asto).generate("Jane", Duration.ofDays(365))
+            .toCompletableFuture().join();
         final JsonObject tokens = Json.createReader(
             new ReaderOf(
-                new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS),
-                StandardCharsets.UTF_8
+                new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS), StandardCharsets.UTF_8
             )
         ).readObject().getJsonObject("tokens");
         MatcherAssert.assertThat(
@@ -156,12 +150,11 @@ class AstoAuthTokensTest {
 
     @Test
     void generatesTokenWhenTokensDoNotExist() {
-        final String token =
-            new AstoAuthTokens(this.asto, "P60D").generate("Jordan").toCompletableFuture().join();
+        final String token = new AstoAuthTokens(this.asto).generate("Jordan", Duration.ofDays(60))
+            .toCompletableFuture().join();
         final JsonObject tokens = Json.createReader(
             new ReaderOf(
-                new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS),
-                StandardCharsets.UTF_8
+                new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS), StandardCharsets.UTF_8
             )
         ).readObject().getJsonObject("tokens");
         MatcherAssert.assertThat(

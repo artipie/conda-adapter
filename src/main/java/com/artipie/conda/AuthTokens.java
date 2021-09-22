@@ -5,6 +5,7 @@
 package com.artipie.conda;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,9 +34,10 @@ public interface AuthTokens {
     /**
      * Generates token for username.
      * @param name User name
+     * @param ttl Time to live, how long is the token valid
      * @return Token string
      */
-    CompletionStage<String> generate(String name);
+    CompletionStage<String> generate(String name, Duration ttl);
 
     /**
      * Token item: username, token and expiration day.

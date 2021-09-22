@@ -71,19 +71,11 @@ public final class AstoAuthTokens implements AuthTokens {
     private final Storage asto;
 
     /**
-     * Time to live, in ISO-8601 duration format {@code PnDTnHnMn.nS} with days
-     * considered to be exactly 24 hours. See {@link Duration#parse(CharSequence)}.
-     */
-    private final String ttl;
-
-    /**
      * Ctor.
      * @param asto Abstract storage
-     * @param ttl Time to live
      */
-    public AstoAuthTokens(final Storage asto, final String ttl) {
+    public AstoAuthTokens(final Storage asto) {
         this.asto = asto;
-        this.ttl = ttl;
     }
 
     @Override
@@ -97,7 +89,7 @@ public final class AstoAuthTokens implements AuthTokens {
     }
 
     @Override
-    public CompletionStage<String> generate(final String name) {
+    public CompletionStage<String> generate(final String name, final Duration ttl) {
         return CompletableFuture.supplyAsync(
             () -> RandomStringUtils.random(AstoAuthTokens.LEN, true, true)
         ).thenCompose(
@@ -115,7 +107,7 @@ public final class AstoAuthTokens implements AuthTokens {
                         gen.writeStartObject();
                         gen.writeStringField("name", name);
                         gen.writeNumberField(
-                            "expire", Instant.now().plus(Duration.parse(this.ttl)).toEpochMilli()
+                            "expire", Instant.now().plus(ttl).toEpochMilli()
                         );
                         gen.writeEndObject();
                         gen.writeEndObject();

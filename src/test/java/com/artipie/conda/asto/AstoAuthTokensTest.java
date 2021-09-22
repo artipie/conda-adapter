@@ -20,7 +20,6 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.llorllale.cactoos.matchers.MatcherOf;
 import wtf.g4s8.hamcrest.json.JsonHas;
 import wtf.g4s8.hamcrest.json.JsonValueIs;
 
@@ -149,10 +148,11 @@ class AstoAuthTokensTest {
                 )
             )
         );
+        final long expire = tokens.getJsonObject(token).getJsonNumber("expire").longValue();
         MatcherAssert.assertThat(
             "Expire value of new token is not correct",
-            tokens.getJsonObject(token).getJsonNumber("expire").longValue(),
-            new MatcherOf<Long>(val -> val > before && val < after)
+            expire > before && expire < after,
+            new IsEqual<>(true)
         );
     }
 
@@ -174,10 +174,11 @@ class AstoAuthTokensTest {
             tokens,
             new JsonHas(token, new JsonHas("name", new JsonValueIs("Jordan")))
         );
+        final long expire = tokens.getJsonObject(token).getJsonNumber("expire").longValue();
         MatcherAssert.assertThat(
             "Expire value of new token is not correct",
-            tokens.getJsonObject(token).getJsonNumber("expire").longValue(),
-            new MatcherOf<Long>(val -> val > before && val < after)
+            expire > before && expire < after,
+            new IsEqual<>(true)
         );
     }
 }

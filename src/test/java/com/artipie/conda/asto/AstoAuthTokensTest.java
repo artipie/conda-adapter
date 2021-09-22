@@ -116,11 +116,8 @@ class AstoAuthTokensTest {
     @Test
     void generatesTokenWhenTokensExist() {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
-        final Duration year = Duration.ofDays(365);
-        final long before = Instant.now().plus(year).toEpochMilli();
         final String token =
             new AstoAuthTokens(this.asto, "P365D").generate("Jane").toCompletableFuture().join();
-        final long after = Instant.now().plus(year).toEpochMilli();
         final JsonObject tokens = Json.createReader(
             new ReaderOf(
                 new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS),
@@ -151,18 +148,16 @@ class AstoAuthTokensTest {
         final long expire = tokens.getJsonObject(token).getJsonNumber("expire").longValue();
         MatcherAssert.assertThat(
             "Expire value of new token is not correct",
-            expire > before && expire < after,
+            expire > Instant.now().plus(Duration.ofDays(364)).toEpochMilli()
+                && expire < Instant.now().plus(Duration.ofDays(366)).toEpochMilli(),
             new IsEqual<>(true)
         );
     }
 
     @Test
     void generatesTokenWhenTokensDoNotExist() {
-        final Duration year = Duration.ofDays(60);
-        final long before = Instant.now().plus(year).toEpochMilli();
         final String token =
             new AstoAuthTokens(this.asto, "P60D").generate("Jordan").toCompletableFuture().join();
-        final long after = Instant.now().plus(year).toEpochMilli();
         final JsonObject tokens = Json.createReader(
             new ReaderOf(
                 new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS),
@@ -177,7 +172,8 @@ class AstoAuthTokensTest {
         final long expire = tokens.getJsonObject(token).getJsonNumber("expire").longValue();
         MatcherAssert.assertThat(
             "Expire value of new token is not correct",
-            expire > before && expire < after,
+            expire > Instant.now().plus(Duration.ofDays(59)).toEpochMilli()
+                && expire < Instant.now().plus(Duration.ofDays(61)).toEpochMilli(),
             new IsEqual<>(true)
         );
     }

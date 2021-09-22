@@ -22,7 +22,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * Class to clean expired tokens.
- * @since 0.4
+ * @since 0.5
  */
 public final class AuthTokensMaid {
 

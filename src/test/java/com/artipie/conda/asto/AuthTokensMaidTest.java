@@ -19,7 +19,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * Test for {@link AuthTokensMaid}.
- * @since 0.4
+ * @since 0.5
  */
 class AuthTokensMaidTest {
 

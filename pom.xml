@@ -85,7 +85,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>v1.4.0</version>
+      <version>v1.5.1</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -184,6 +184,12 @@ SOFTWARE.
       <groupId>org.skyscreamer</groupId>
       <artifactId>jsonassert</artifactId>
       <version>1.5.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>wtf.g4s8</groupId>
+      <artifactId>matchers-json</artifactId>
+      <version>1.0.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

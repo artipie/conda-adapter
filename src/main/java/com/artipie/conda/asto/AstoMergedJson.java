@@ -5,25 +5,16 @@
 package com.artipie.conda.asto;
 
 import com.artipie.asto.ArtipieIOException;
-import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.misc.UncheckedIOConsumer;
 import com.artipie.asto.misc.UncheckedIOFunc;
+import com.artipie.asto.streams.StorageValuePipeline;
 import com.artipie.conda.meta.MergedJson;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.json.JsonObject;
-import org.cqfn.rio.Buffers;
-import org.cqfn.rio.WriteGreed;
-import org.cqfn.rio.stream.ReactiveInputStream;
-import org.cqfn.rio.stream.ReactiveOutputStream;
 
 /**
  * Asto merged json adds packages metadata to repodata index, reading and writing to/from
@@ -59,45 +50,17 @@ public final class AstoMergedJson {
      * @return Completable operation
      */
     public CompletionStage<Void> merge(final Map<String, JsonObject> items) {
-        return this.asto.exists(this.key).thenCompose(
-            exists -> {
-                final CompletionStage<Void> future;
-                Optional<PipedInputStream> pis = Optional.empty();
-                Optional<PipedOutputStream> pos = Optional.empty();
-                final CompletableFuture<Void> tmp;
-                try (PipedOutputStream outout = new PipedOutputStream()) {
-                    if (exists) {
-                        pis = Optional.of(new PipedInputStream());
-                        final PipedOutputStream out = new PipedOutputStream(pis.get());
-                        pos = Optional.of(out);
-                        tmp = this.asto.value(this.key).thenCompose(
-                            input -> new ReactiveOutputStream(out).write(input, WriteGreed.SYSTEM)
-                        );
-                    } else {
-                        tmp = CompletableFuture.allOf();
-                        pis = Optional.empty();
-                    }
-                    final PipedInputStream src = new PipedInputStream(outout);
-                    future = tmp.thenCompose(
-                        nothing -> this.asto.save(
-                            this.key,
-                            new Content.From(
-                                new ReactiveInputStream(src).read(Buffers.Standard.K16)
-                            )
-                        )
-                    );
+        return new StorageValuePipeline(this.asto, this.key).process(
+            (opt, out) -> {
+                try {
                     final JsonFactory factory = new JsonFactory();
                     new MergedJson.Jackson(
-                        factory.createGenerator(outout),
-                        pis.map(new UncheckedIOFunc<>(factory::createParser))
+                        factory.createGenerator(out),
+                        opt.map(new UncheckedIOFunc<>(factory::createParser))
                     ).merge(items);
                 } catch (final IOException err) {
                     throw new ArtipieIOException(err);
-                } finally {
-                    pis.ifPresent(new UncheckedIOConsumer<>(PipedInputStream::close));
-                    pos.ifPresent(new UncheckedIOConsumer<>(PipedOutputStream::close));
                 }
-                return future;
             }
         );
     }

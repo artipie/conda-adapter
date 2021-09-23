@@ -53,7 +53,7 @@ public interface AuthTokens {
         /**
          * Token.
          */
-        private final String token;
+        private final String tkn;
 
         /**
          * Expiration date.
@@ -67,7 +67,7 @@ public interface AuthTokens {
          * @param expire Expiration date
          */
         public TokenItem(final String token, final String uname, final Instant expire) {
-            this.token = token;
+            this.tkn = token;
             this.uname = uname;
             this.expire = expire;
         }
@@ -100,6 +100,14 @@ public interface AuthTokens {
             return this.expire.compareTo(Instant.now()) < 0;
         }
 
+        /**
+         * Token string value.
+         * @return Token
+         */
+        public String token() {
+            return this.tkn;
+        }
+
         @Override
         public boolean equals(final Object other) {
             final boolean res;
@@ -110,7 +118,7 @@ public interface AuthTokens {
             } else {
                 final TokenItem item = (TokenItem) other;
                 res = this.uname.equals(item.uname)
-                    && this.token.equals(item.token)
+                    && this.tkn.equals(item.tkn)
                     && this.expire.equals(item.expire);
             }
             return res;
@@ -118,7 +126,7 @@ public interface AuthTokens {
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.token, this.uname, this.expire);
+            return Objects.hash(this.tkn, this.uname, this.expire);
         }
     }
 }

@@ -37,7 +37,7 @@ public interface AuthTokens {
      * @param ttl Time to live, how long is the token valid
      * @return Token string
      */
-    CompletionStage<String> generate(String name, Duration ttl);
+    CompletionStage<TokenItem> generate(String name, Duration ttl);
 
     /**
      * Token item: username, token and expiration day.
@@ -106,6 +106,14 @@ public interface AuthTokens {
          */
         public String token() {
             return this.tkn;
+        }
+
+        /**
+         * Instant date until this token is valid.
+         * @return Valid until date
+         */
+        public Instant validUntil() {
+            return this.expire;
         }
 
         @Override

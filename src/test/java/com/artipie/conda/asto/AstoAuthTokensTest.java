@@ -111,8 +111,8 @@ class AstoAuthTokensTest {
     @Test
     void generatesTokenWhenTokensExist() {
         new TestResource(AstoAuthTokensTest.TOKENS_JSON).saveTo(this.asto, AstoAuthTokens.TKNS);
-        final String token = new AstoAuthTokens(this.asto).generate("Jane", Duration.ofDays(365))
-            .toCompletableFuture().join();
+        final AuthTokens.TokenItem token = new AstoAuthTokens(this.asto)
+            .generate("Jane", Duration.ofDays(365)).toCompletableFuture().join();
         final JsonObject tokens = Json.createReader(
             new ReaderOf(
                 new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS), StandardCharsets.UTF_8
@@ -122,7 +122,13 @@ class AstoAuthTokensTest {
             "Resulting json format is not as expected",
             tokens,
             Matchers.allOf(
-                new JsonHas(token, new JsonHas("name", new JsonValueIs("Jane"))),
+                new JsonHas(
+                    token.token(),
+                    Matchers.allOf(
+                        new JsonHas("name", new JsonValueIs("Jane")),
+                        new JsonHas("expire", new JsonValueIs(token.validUntil().toEpochMilli()))
+                    )
+                ),
                 new JsonHas(
                     "abc123",
                     Matchers.allOf(
@@ -139,19 +145,12 @@ class AstoAuthTokensTest {
                 )
             )
         );
-        final long expire = tokens.getJsonObject(token).getJsonNumber("expire").longValue();
-        MatcherAssert.assertThat(
-            "Expire value of new token is not correct",
-            expire > Instant.now().plus(Duration.ofDays(364)).toEpochMilli()
-                && expire < Instant.now().plus(Duration.ofDays(366)).toEpochMilli(),
-            new IsEqual<>(true)
-        );
     }
 
     @Test
     void generatesTokenWhenTokensDoNotExist() {
-        final String token = new AstoAuthTokens(this.asto).generate("Jordan", Duration.ofDays(60))
-            .toCompletableFuture().join();
+        final AuthTokens.TokenItem token = new AstoAuthTokens(this.asto)
+            .generate("Jordan", Duration.ofDays(60)).toCompletableFuture().join();
         final JsonObject tokens = Json.createReader(
             new ReaderOf(
                 new BlockingStorage(this.asto).value(AstoAuthTokens.TKNS), StandardCharsets.UTF_8
@@ -160,14 +159,13 @@ class AstoAuthTokensTest {
         MatcherAssert.assertThat(
             "Resulting json format is not as expected",
             tokens,
-            new JsonHas(token, new JsonHas("name", new JsonValueIs("Jordan")))
-        );
-        final long expire = tokens.getJsonObject(token).getJsonNumber("expire").longValue();
-        MatcherAssert.assertThat(
-            "Expire value of new token is not correct",
-            expire > Instant.now().plus(Duration.ofDays(59)).toEpochMilli()
-                && expire < Instant.now().plus(Duration.ofDays(61)).toEpochMilli(),
-            new IsEqual<>(true)
+            new JsonHas(
+                token.token(),
+                Matchers.allOf(
+                    new JsonHas("name", new JsonValueIs("Jordan")),
+                    new JsonHas("expire", new JsonValueIs(token.validUntil().toEpochMilli()))
+                )
+            )
         );
     }
 }

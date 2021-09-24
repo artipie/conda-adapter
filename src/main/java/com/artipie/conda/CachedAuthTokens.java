@@ -13,7 +13,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Cached authentication tokens.
@@ -70,8 +69,13 @@ public final class CachedAuthTokens implements AuthTokens {
     }
 
     @Override
-    public CompletionStage<String> generate(final String name, final Duration ttl) {
-        throw new NotImplementedException("Not yet implemented");
+    public CompletionStage<TokenItem> generate(final String name, final Duration ttl) {
+        return this.origin.generate(name, ttl).thenApply(
+            tkn -> {
+                this.cache.put(tkn.token(), tkn);
+                return tkn;
+            }
+        );
     }
 
     /**

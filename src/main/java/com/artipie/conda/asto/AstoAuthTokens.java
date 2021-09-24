@@ -89,9 +89,11 @@ public final class AstoAuthTokens implements AuthTokens {
     }
 
     @Override
-    public CompletionStage<String> generate(final String name, final Duration ttl) {
+    public CompletionStage<TokenItem> generate(final String name, final Duration ttl) {
         return CompletableFuture.supplyAsync(
             () -> RandomStringUtils.random(AstoAuthTokens.LEN, true, true)
+        ).thenApply(
+            str -> new TokenItem(str, name, Instant.now().plus(ttl))
         ).thenCompose(
             token -> new StorageValuePipeline(this.asto, AstoAuthTokens.TKNS).process(
                 (opt, out) -> {
@@ -103,12 +105,10 @@ public final class AstoAuthTokens implements AuthTokens {
                         gen.writeFieldName(AstoAuthTokens.TOKENS);
                         gen.writeStartObject();
                         parser.ifPresent(item -> AstoAuthTokens.copy(gen, item));
-                        gen.writeFieldName(token);
+                        gen.writeFieldName(token.token());
                         gen.writeStartObject();
                         gen.writeStringField("name", name);
-                        gen.writeNumberField(
-                            "expire", Instant.now().plus(ttl).toEpochMilli()
-                        );
+                        gen.writeNumberField("expire", token.validUntil().toEpochMilli());
                         gen.writeEndObject();
                         gen.writeEndObject();
                     } catch (final IOException err) {

@@ -4,10 +4,12 @@
  */
 package com.artipie.conda;
 
+import com.artipie.asto.misc.UncheckedScalar;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
@@ -18,11 +20,6 @@ import org.apache.commons.lang3.NotImplementedException;
  * @since 0.5
  */
 public final class CachedAuthTokens implements AuthTokens {
-
-    /**
-     * One hour in millis.
-     */
-    private static final int HOUR = 60 * 1000;
 
     /**
      * Tokens cache.
@@ -50,53 +47,59 @@ public final class CachedAuthTokens implements AuthTokens {
      */
     public CachedAuthTokens(final AuthTokens origin) {
         this(
-            CacheBuilder.newBuilder()
-                .expireAfterAccess(CachedAuthTokens.HOUR, TimeUnit.MILLISECONDS)
-                .softValues().build(),
+            CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).softValues().build(),
             origin
         );
     }
 
     @Override
     public CompletionStage<Optional<TokenItem>> get(final String token) {
-        final TokenItem item = this.cache.getIfPresent(token);
-        CompletionStage<Optional<TokenItem>> res = CompletableFuture
-            .completedFuture(Optional.empty());
-        if (item == null) {
-            res = this.origin.get(token).thenApply(
-                tkn -> {
-                    tkn.ifPresent(present -> this.cache.put(token, present));
-                    return tkn;
-                }
-            );
-        } else if (!item.expired()) {
-            res = CompletableFuture.completedFuture(Optional.of(item));
-        }
-        return res;
+        return this.checkAndCompute(
+            Optional.ofNullable(this.cache.getIfPresent(token)),
+            () -> this.origin.get(token)
+        );
     }
 
     @Override
-    @SuppressWarnings("PMD.ConfusingTernary")
     public CompletionStage<Optional<TokenItem>> find(final String username) {
-        final Optional<TokenItem> token = this.cache.asMap().values().stream()
-            .filter(item -> item.userName().equals(username)).findFirst();
-        CompletionStage<Optional<TokenItem>> res =
-            CompletableFuture.completedFuture(Optional.empty());
-        if (!token.isPresent()) {
-            res = this.origin.find(username).thenApply(
-                tkn -> {
-                    tkn.ifPresent(present -> this.cache.put(present.token(), present));
-                    return tkn;
-                }
-            );
-        } else if (!token.get().expired()) {
-            res = CompletableFuture.completedFuture(token);
-        }
-        return res;
+        return this.checkAndCompute(
+            this.cache.asMap().values().stream()
+                .filter(item -> item.userName().equals(username)).findFirst(),
+            () -> this.origin.find(username)
+        );
     }
 
     @Override
     public CompletionStage<String> generate(final String name, final Duration ttl) {
         throw new NotImplementedException("Not yet implemented");
+    }
+
+    /**
+     * Checks if
+     *  a) the token from cache is absent, calls provided compute and ads value to cache
+     *  b) present and not expired, returns value from cache
+     * and returns the result.
+     * @param item Token item from cache, empty is not found
+     * @param compute Action to compute if token is not present in cache
+     * @return Completable action with the result
+     */
+    @SuppressWarnings("PMD.ConfusingTernary")
+    private CompletionStage<Optional<TokenItem>> checkAndCompute(
+        final Optional<TokenItem> item,
+        final Callable<CompletionStage<Optional<TokenItem>>> compute
+    ) {
+        CompletionStage<Optional<TokenItem>> res =
+            CompletableFuture.completedFuture(Optional.empty());
+        if (!item.isPresent()) {
+            res = new UncheckedScalar<>(compute::call).value().thenApply(
+                tkn -> {
+                    tkn.ifPresent(present -> this.cache.put(present.token(), present));
+                    return tkn;
+                }
+            );
+        } else if (!item.get().expired()) {
+            res = CompletableFuture.completedFuture(item);
+        }
+        return res;
     }
 }

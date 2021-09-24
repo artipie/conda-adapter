@@ -25,7 +25,7 @@ class CachedAuthTokensTest {
     @Test
     void getsFromCache() {
         final Cache<String, AuthTokens.TokenItem> cache =
-            CacheBuilder.newBuilder().expireAfterAccess(60 * 100, TimeUnit.MILLISECONDS)
+            CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES)
             .softValues().build();
         final AuthTokens.TokenItem item = new AuthTokens.TokenItem("000", "Zero", Instant.MAX);
         cache.put(item.token(), item);
@@ -39,7 +39,7 @@ class CachedAuthTokensTest {
     @Test
     void findsFromCache() {
         final Cache<String, AuthTokens.TokenItem> cache =
-            CacheBuilder.newBuilder().expireAfterAccess(60 * 100, TimeUnit.MILLISECONDS)
+            CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES)
                 .softValues().build();
         final AuthTokens.TokenItem item = new AuthTokens.TokenItem("abc", "Alice", Instant.MAX);
         cache.put(item.token(), item);

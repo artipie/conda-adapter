@@ -117,7 +117,7 @@ class CachedAuthTokensTest {
 
     @Test
     void addsToCache() {
-        AuthTokens.TokenItem item = new CachedAuthTokens(this.cache, new FakeAuthTokens())
+        final AuthTokens.TokenItem item = new CachedAuthTokens(this.cache, new FakeAuthTokens())
             .generate("Janette", Duration.ofDays(1)).toCompletableFuture().join();
         MatcherAssert.assertThat(
             this.cache.getIfPresent(item.token()),
@@ -128,6 +128,7 @@ class CachedAuthTokensTest {
     /**
      * Fake implementation of {@link AuthTokens}.
      * @since 0.5
+     * @checkstyle JavadocVariableCheck (500 lines)
      */
     static class FakeAuthTokens implements AuthTokens {
 
@@ -138,7 +139,7 @@ class CachedAuthTokensTest {
         }
 
         FakeAuthTokens() {
-            this(new ArrayList<>());
+            this(new ArrayList<>(1));
         }
 
         FakeAuthTokens(final TokenItem tkn) {

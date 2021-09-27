@@ -8,12 +8,16 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -24,41 +28,100 @@ import org.junit.jupiter.api.Test;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CachedAuthTokensTest {
 
+    /**
+     * Test cache.
+     */
+    private Cache<String, AuthTokens.TokenItem> cache;
+
+    @BeforeEach
+    void init() {
+        this.cache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES)
+            .softValues().build();
+    }
+
     @Test
     void getsFromCache() {
-        final Cache<String, AuthTokens.TokenItem> cache =
-            CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).softValues().build();
         final AuthTokens.TokenItem item = new AuthTokens.TokenItem("000", "Zero", Instant.MAX);
-        cache.put(item.token(), item);
+        this.cache.put(item.token(), item);
         MatcherAssert.assertThat(
-            new CachedAuthTokens(cache, new FakeAuthTokens()).get(item.token())
+            new CachedAuthTokens(this.cache, new FakeAuthTokens()).get(item.token())
                 .toCompletableFuture().join().get(),
             new IsEqual<>(item)
+        );
+    }
+
+    @Test
+    void getsFromOriginAndAddsToCache() {
+        final AuthTokens.TokenItem item = new AuthTokens.TokenItem("12", "OneTwo", Instant.MAX);
+        MatcherAssert.assertThat(
+            "Did not get token from origin",
+            new CachedAuthTokens(this.cache, new FakeAuthTokens(item)).get(item.token())
+                .toCompletableFuture().join().get(),
+            new IsEqual<>(item)
+        );
+        MatcherAssert.assertThat(
+            "Did not add token item to cache",
+            this.cache.getIfPresent(item.token()),
+            new IsEqual<>(item)
+        );
+    }
+
+    @Test
+    void returnsEmptyIfTokenIsExpired() {
+        final AuthTokens.TokenItem item = new AuthTokens.TokenItem("03", "ZeroThree", Instant.MIN);
+        this.cache.put(item.token(), item);
+        MatcherAssert.assertThat(
+            new CachedAuthTokens(this.cache, new FakeAuthTokens()).get(item.token())
+                .toCompletableFuture().join().isPresent(),
+            new IsEqual<>(false)
         );
     }
 
     @Test
     void findsFromCache() {
-        final Cache<String, AuthTokens.TokenItem> cache =
-            CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).softValues().build();
         final AuthTokens.TokenItem item = new AuthTokens.TokenItem("abc", "Alice", Instant.MAX);
-        cache.put(item.token(), item);
+        this.cache.put(item.token(), item);
         MatcherAssert.assertThat(
-            new CachedAuthTokens(cache, new FakeAuthTokens()).find(item.userName())
+            new CachedAuthTokens(this.cache, new FakeAuthTokens()).find(item.userName())
                 .toCompletableFuture().join().get(),
             new IsEqual<>(item)
         );
     }
 
     @Test
+    void findsFromOriginAndAddsToCache() {
+        final AuthTokens.TokenItem item = new AuthTokens.TokenItem("09", "ZeroNine", Instant.MAX);
+        MatcherAssert.assertThat(
+            "Did not get token item from origin",
+            new CachedAuthTokens(this.cache, new FakeAuthTokens(item)).find(item.userName())
+                .toCompletableFuture().join().get(),
+            new IsEqual<>(item)
+        );
+        MatcherAssert.assertThat(
+            "Did not add token item to cache",
+            this.cache.getIfPresent(item.token()),
+            new IsEqual<>(item)
+        );
+    }
+
+    @Test
+    void returnsEmptyIfTokenIsExpiredByUsername() {
+        final AuthTokens.TokenItem item = new AuthTokens.TokenItem("04", "ZeroFour", Instant.MIN);
+        this.cache.put(item.token(), item);
+        MatcherAssert.assertThat(
+            new CachedAuthTokens(this.cache, new FakeAuthTokens()).find(item.userName())
+                .toCompletableFuture().join().isPresent(),
+            new IsEqual<>(false)
+        );
+    }
+
+    @Test
     void addsToCache() {
-        final Cache<String, AuthTokens.TokenItem> cache =
-            CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).softValues().build();
-        new CachedAuthTokens(cache, new FakeAuthTokens())
+        AuthTokens.TokenItem item = new CachedAuthTokens(this.cache, new FakeAuthTokens())
             .generate("Janette", Duration.ofDays(1)).toCompletableFuture().join();
         MatcherAssert.assertThat(
-            cache.size(),
-            new IsEqual<>(1L)
+            this.cache.getIfPresent(item.token()),
+            new IsEqual<>(item)
         );
     }
 
@@ -68,21 +131,45 @@ class CachedAuthTokensTest {
      */
     static class FakeAuthTokens implements AuthTokens {
 
+        private final List<TokenItem> tokens;
+
+        FakeAuthTokens(final List<TokenItem> tokens) {
+            this.tokens = tokens;
+        }
+
+        FakeAuthTokens() {
+            this(new ArrayList<>());
+        }
+
+        FakeAuthTokens(final TokenItem tkn) {
+            this(new ListOf<>(tkn));
+        }
+
         @Override
         public CompletionStage<Optional<TokenItem>> get(final String token) {
-            return null;
+            if (this.tokens.isEmpty()) {
+                throw new IllegalStateException();
+            }
+            return CompletableFuture.completedFuture(
+                this.tokens.stream().filter(item -> item.token().equals(token)).findFirst()
+            );
         }
 
         @Override
         public CompletionStage<Optional<TokenItem>> find(final String username) {
-            return null;
+            if (this.tokens.isEmpty()) {
+                throw new IllegalStateException();
+            }
+            return CompletableFuture.completedFuture(
+                this.tokens.stream().filter(item -> item.userName().equals(username)).findFirst()
+            );
         }
 
         @Override
         public CompletionStage<TokenItem> generate(final String name, final Duration ttl) {
-            return CompletableFuture.completedFuture(
-                new TokenItem("abc123", "Janette", Instant.now().plus(ttl))
-            );
+            final TokenItem value = new TokenItem("abc123", "Janette", Instant.now().plus(ttl));
+            this.tokens.add(value);
+            return CompletableFuture.completedFuture(value);
         }
     }
 

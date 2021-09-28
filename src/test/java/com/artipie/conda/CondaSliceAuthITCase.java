@@ -18,6 +18,7 @@ import io.vertx.reactivex.core.Vertx;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import org.apache.commons.io.FileUtils;
 import org.cactoos.list.ListOf;
 import org.hamcrest.MatcherAssert;
@@ -104,7 +105,8 @@ public final class CondaSliceAuthITCase {
                     new Authentication.Single(
                         CondaSliceAuthITCase.UNAME, CondaSliceAuthITCase.PSWD
                     ),
-                    url
+                    url,
+                    Duration.ofDays(1)
                 )
             ),
             this.port

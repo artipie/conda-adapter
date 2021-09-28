@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -16,6 +17,30 @@ import java.util.concurrent.CompletionStage;
  * @since 0.5
  */
 public interface AuthTokens {
+
+    /**
+     * Anonymous tokens.
+     */
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
+    AuthTokens ANONYMOUS = new AuthTokens() {
+
+        @Override
+        public CompletionStage<Optional<TokenItem>> get(final String token) {
+            return CompletableFuture.completedFuture(
+                Optional.of(new TokenItem("any", "anonymous", Instant.MAX))
+            );
+        }
+
+        @Override
+        public CompletionStage<Optional<TokenItem>> find(final String username) {
+            return this.get("any");
+        }
+
+        @Override
+        public CompletionStage<TokenItem> generate(final String name, final Duration ttl) {
+            return this.get("any").thenApply(res -> res.get());
+        }
+    };
 
     /**
      * Get valid token item by token string.

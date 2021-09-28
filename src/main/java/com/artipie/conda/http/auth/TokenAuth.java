@@ -4,9 +4,9 @@
  */
 package com.artipie.conda.http.auth;
 
+import com.artipie.conda.AuthTokens;
 import com.artipie.http.auth.Authentication;
 import com.artipie.http.auth.TokenAuthentication;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -26,18 +26,19 @@ public final class TokenAuth implements TokenAuthentication {
     /**
      * Tokens.
      */
-    private final Map<String, Authentication.User> tokens;
+    private final AuthTokens tokens;
 
     /**
      * Ctor.
      * @param tokens Tokens and users
      */
-    public TokenAuth(final Map<String, Authentication.User> tokens) {
+    public TokenAuth(final AuthTokens tokens) {
         this.tokens = tokens;
     }
 
     @Override
     public CompletionStage<Optional<Authentication.User>> user(final String token) {
-        return CompletableFuture.completedFuture(Optional.ofNullable(this.tokens.get(token)));
+        return this.tokens.get(token)
+            .thenApply(tkn -> tkn.map(item -> new Authentication.User(item.userName())));
     }
 }

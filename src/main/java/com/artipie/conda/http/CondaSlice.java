@@ -6,6 +6,9 @@ package com.artipie.conda.http;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.conda.AuthTokens;
+import com.artipie.conda.CachedAuthTokens;
+import com.artipie.conda.asto.AstoAuthTokens;
 import com.artipie.conda.http.auth.TokenAuth;
 import com.artipie.conda.http.auth.TokenAuthScheme;
 import com.artipie.conda.http.auth.TokenAuthSlice;
@@ -15,7 +18,6 @@ import com.artipie.http.auth.Authentication;
 import com.artipie.http.auth.BasicAuthSlice;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
-import com.artipie.http.auth.TokenAuthentication;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.StandardRs;
 import com.artipie.http.rt.ByMethodsRule;
@@ -25,6 +27,7 @@ import com.artipie.http.rt.SliceRoute;
 import com.artipie.http.slice.KeyFromPath;
 import com.artipie.http.slice.SliceDownload;
 import com.artipie.http.slice.SliceSimple;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -57,7 +60,11 @@ public final class CondaSlice extends Slice.Wrap {
      * @param url Application url
      */
     public CondaSlice(final Storage storage, final String url) {
-        this(storage, Permissions.FREE, Authentication.ANONYMOUS, TokenAuth.ANONYMOUS, url);
+        // @checkstyle MagicNumberCheck (5 lines)
+        this(
+            storage, Permissions.FREE, Authentication.ANONYMOUS,
+            AuthTokens.ANONYMOUS, url, Duration.ofDays(365)
+        );
     }
 
     /**
@@ -66,11 +73,16 @@ public final class CondaSlice extends Slice.Wrap {
      * @param perms Permissions
      * @param users Users
      * @param url Application url
+     * @param ttl Tokens time to live
      * @checkstyle ParameterNumberCheck (5 lines)
      */
     public CondaSlice(final Storage storage, final Permissions perms, final Authentication users,
-        final String url) {
-        this(storage, perms, users, new TokenAuth(CondaSlice.TKNS), url);
+        final String url, final Duration ttl) {
+        this(
+            storage, perms, users,
+            new CachedAuthTokens(new AstoAuthTokens(storage)),
+            url, ttl
+        );
     }
 
     /**
@@ -78,12 +90,13 @@ public final class CondaSlice extends Slice.Wrap {
      * @param storage Storage
      * @param perms Permissions
      * @param users Users
-     * @param tauth Token Authentication
+     * @param tokens Tokens
      * @param url Application url
+     * @param ttl Tokens time to live
      * @checkstyle ParameterNumberCheck (5 lines)
      */
     private CondaSlice(final Storage storage, final Permissions perms, final Authentication users,
-        final TokenAuthentication tauth, final String url) {
+        final AuthTokens tokens, final String url, final Duration ttl) {
         super(
             new SliceRoute(
                 new RtRulePath(
@@ -93,7 +106,7 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new TokenAuthSlice(
                         new DownloadRepodataSlice(storage),
-                        new Permission.ByName(perms, Action.Standard.READ), tauth
+                        new Permission.ByName(perms, Action.Standard.READ), tokens
                     )
                 ),
                 new RtRulePath(
@@ -113,7 +126,7 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new TokenAuthSlice(
                         new SliceDownload(storage, CondaSlice.transform()),
-                        new Permission.ByName(perms, Action.Standard.READ), tauth
+                        new Permission.ByName(perms, Action.Standard.READ), tokens
                     )
                 ),
                 new RtRulePath(
@@ -133,7 +146,7 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new TokenAuthSlice(
                         new PostStageCommitSlice(url),
-                        new Permission.ByName(perms, Action.Standard.READ), tauth
+                        new Permission.ByName(perms, Action.Standard.READ), tokens
                     )
                 ),
                 new RtRulePath(
@@ -143,7 +156,7 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new TokenAuthSlice(
                         new UpdateSlice(storage),
-                        new Permission.ByName(perms, Action.Standard.READ), tauth
+                        new Permission.ByName(perms, Action.Standard.READ), tokens
                     )
                 ),
                 new RtRulePath(
@@ -152,7 +165,7 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new TokenAuthSlice(
                         new GetPackageSlice(),
-                        new Permission.ByName(perms, Action.Standard.READ), tauth
+                        new Permission.ByName(perms, Action.Standard.READ), tokens
                     )
                 ),
                 new RtRulePath(
@@ -161,16 +174,16 @@ public final class CondaSlice extends Slice.Wrap {
                     ),
                     new TokenAuthSlice(
                         new PostPackageReleaseSlice(),
-                        new Permission.ByName(perms, Action.Standard.READ), tauth
+                        new Permission.ByName(perms, Action.Standard.READ), tokens
                     )
                 ),
                 new RtRulePath(new ByMethodsRule(RqMethod.HEAD), new SliceSimple(StandardRs.OK)),
                 new RtRulePath(
                     new RtRule.All(new RtRule.ByPath("/user"), new ByMethodsRule(RqMethod.GET)),
                     new TokenAuthSlice(
-                        new GetUserSlice(new TokenAuthScheme(tauth)),
+                        new GetUserSlice(new TokenAuthScheme(new TokenAuth(tokens))),
                         new Permission.ByName(perms, Action.Standard.READ),
-                        tauth
+                        tokens
                     )
                 ),
                 new RtRulePath(
@@ -185,7 +198,7 @@ public final class CondaSlice extends Slice.Wrap {
                         new RtRule.ByPath(".*authentications$"), new ByMethodsRule(RqMethod.POST)
                     ),
                     new BasicAuthSlice(
-                        new GenerateTokenSlice(users, CondaSlice.TKNS), users,
+                        new GenerateTokenSlice(users, tokens, ttl), users,
                         new Permission.ByName(perms, Action.Standard.WRITE)
                     )
                 ),

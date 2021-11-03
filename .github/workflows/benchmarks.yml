@@ -1,0 +1,55 @@
+name: Run benchmarks
+on:
+  push:
+    tags:
+      - 'test*'
+jobs:
+  running-bench:
+    name: Run benchmark
+    runs-on: [self-hosted, bench]
+    steps:
+      - uses: actions/checkout@v2.3.3
+      - name: Set env
+        run: |
+          echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "REPO=conda" >> $GITHUB_ENV
+          echo "http_proxy=http://localhost:3128" >> $GITHUB_ENV
+          echo "https_proxy=http://localhost:3128" >> $GITHUB_ENV
+      - name: Run target benchmark
+        run: |
+          git clone https://github.com/artipie/benchmarks.git tmp-bench
+          cd tmp-bench/adapters
+          make run TARGET=${{ env.REPO }}
+          mkdir -p $GITHUB_WORKSPACE/benchmarks/results/${{ env.TAG }}
+          cp -avr out/${{ env.REPO }}/* $GITHUB_WORKSPACE/benchmarks/results/${{ env.TAG }}
+          cd ../..
+          rm -rf tmp-bench
+      - name: Set user and fetch
+        run: |
+          git config --global user.name "github-action"
+          git config --global user.email "benchmarks@artipie.com"
+          git add .
+          git fetch origin
+          git switch -C master origin/master
+          git checkout -b bench-${{ env.TAG }}
+          git commit -m "bench: added results of benchmarks for ${{ env.TAG }}"
+          git push origin HEAD:bench-${{ env.TAG }}
+  pull-request:
+    name: Create PR with results
+    needs: running-bench
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.3
+      - name: Set env
+        run: |
+          echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Create pull request
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: "bench-${{ env.TAG }}"
+          destination_branch: "master"
+          pr_title: "bench: adding results of benchmarks for ${{ env.TAG }}"
+          pr_reviewer: "genryxy"
+          pr_assignee: "genryxy"
+          pr_label: "benchmarks-results"
+          github_token: ${{ secrets.GITHUB_TOKEN }}

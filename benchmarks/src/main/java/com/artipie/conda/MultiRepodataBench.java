@@ -2,9 +2,8 @@
  * The MIT License (MIT) Copyright (c) 2020-2021 artipie.com
  * https://github.com/artipie/conda-adapter/LICENSE
  */
-package com.artipie.conda.benchmarks;
+package com.artipie.conda;
 
-import com.artipie.conda.MultiRepodata;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

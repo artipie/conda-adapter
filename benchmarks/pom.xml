@@ -29,13 +29,12 @@ SOFTWARE.
     <version>0.5.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.artipie</groupId>
   <artifactId>conda-bench</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <jmh.version>1.29</jmh.version>
-    <asto.version>v1.3.2</asto.version>
+    <asto.version>v1.8.0</asto.version>
   </properties>
   <dependencies>
     <dependency>

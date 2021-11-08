@@ -1,0 +1,182 @@
+# JMH version: 1.29
+# VM version: JDK 11.0.11, OpenJDK 64-Bit Server VM, 11.0.11+9-Ubuntu-0ubuntu2.20.04
+# VM invoker: /usr/lib/jvm/java-11-openjdk-amd64/bin/java
+# VM options: <none>
+# Blackhole mode: full + dont-inline hint
+# Warmup: 5 iterations, 10 s each
+# Measurement: 20 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: com.artipie.conda.CondaRepodataAppendBench.run
+
+# Run progress: 0.00% complete, ETA 00:20:50
+# Fork: 1 of 5
+# Warmup Iteration   1: <failure>
+
+com.artipie.asto.ArtipieIOException: java.io.IOException: Stream is not in the BZip2 format
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:39)
+	at com.artipie.conda.CondaRepodata$Append.perform(CondaRepodata.java:139)
+	at com.artipie.conda.CondaRepodataAppendBench.run(CondaRepodataAppendBench.java:86)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_avgt_jmhStub(CondaRepodataAppendBench_run_jmhTest.java:232)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_AverageTime(CondaRepodataAppendBench_run_jmhTest.java:173)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:470)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:453)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.io.IOException: Stream is not in the BZip2 format
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.init(BZip2CompressorInputStream.java:261)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:135)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:113)
+	at com.artipie.conda.meta.InfoIndex$TarBz.json(InfoIndex.java:64)
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:36)
+	... 16 more
+
+
+
+# Run progress: 20.00% complete, ETA 00:00:03
+# Fork: 2 of 5
+# Warmup Iteration   1: <failure>
+
+com.artipie.asto.ArtipieIOException: java.io.IOException: Stream is not in the BZip2 format
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:39)
+	at com.artipie.conda.CondaRepodata$Append.perform(CondaRepodata.java:139)
+	at com.artipie.conda.CondaRepodataAppendBench.run(CondaRepodataAppendBench.java:86)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_avgt_jmhStub(CondaRepodataAppendBench_run_jmhTest.java:232)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_AverageTime(CondaRepodataAppendBench_run_jmhTest.java:173)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:470)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:453)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.io.IOException: Stream is not in the BZip2 format
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.init(BZip2CompressorInputStream.java:261)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:135)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:113)
+	at com.artipie.conda.meta.InfoIndex$TarBz.json(InfoIndex.java:64)
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:36)
+	... 16 more
+
+
+
+# Run progress: 40.00% complete, ETA 00:00:02
+# Fork: 3 of 5
+# Warmup Iteration   1: <failure>
+
+com.artipie.asto.ArtipieIOException: java.io.IOException: Stream is not in the BZip2 format
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:39)
+	at com.artipie.conda.CondaRepodata$Append.perform(CondaRepodata.java:139)
+	at com.artipie.conda.CondaRepodataAppendBench.run(CondaRepodataAppendBench.java:86)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_avgt_jmhStub(CondaRepodataAppendBench_run_jmhTest.java:232)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_AverageTime(CondaRepodataAppendBench_run_jmhTest.java:173)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:470)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:453)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.io.IOException: Stream is not in the BZip2 format
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.init(BZip2CompressorInputStream.java:261)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:135)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:113)
+	at com.artipie.conda.meta.InfoIndex$TarBz.json(InfoIndex.java:64)
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:36)
+	... 16 more
+
+
+
+# Run progress: 60.00% complete, ETA 00:00:01
+# Fork: 4 of 5
+# Warmup Iteration   1: <failure>
+
+com.artipie.asto.ArtipieIOException: java.io.IOException: Stream is not in the BZip2 format
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:39)
+	at com.artipie.conda.CondaRepodata$Append.perform(CondaRepodata.java:139)
+	at com.artipie.conda.CondaRepodataAppendBench.run(CondaRepodataAppendBench.java:86)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_avgt_jmhStub(CondaRepodataAppendBench_run_jmhTest.java:232)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_AverageTime(CondaRepodataAppendBench_run_jmhTest.java:173)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:470)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:453)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.io.IOException: Stream is not in the BZip2 format
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.init(BZip2CompressorInputStream.java:261)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:135)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:113)
+	at com.artipie.conda.meta.InfoIndex$TarBz.json(InfoIndex.java:64)
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:36)
+	... 16 more
+
+
+
+# Run progress: 80.00% complete, ETA 00:00:00
+# Fork: 5 of 5
+# Warmup Iteration   1: <failure>
+
+com.artipie.asto.ArtipieIOException: java.io.IOException: Stream is not in the BZip2 format
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:39)
+	at com.artipie.conda.CondaRepodata$Append.perform(CondaRepodata.java:139)
+	at com.artipie.conda.CondaRepodataAppendBench.run(CondaRepodataAppendBench.java:86)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_avgt_jmhStub(CondaRepodataAppendBench_run_jmhTest.java:232)
+	at com.artipie.conda.jmh_generated.CondaRepodataAppendBench_run_jmhTest.run_AverageTime(CondaRepodataAppendBench_run_jmhTest.java:173)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:470)
+	at org.openjdk.jmh.runner.BenchmarkHandler$BenchmarkTask.call(BenchmarkHandler.java:453)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.io.IOException: Stream is not in the BZip2 format
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.init(BZip2CompressorInputStream.java:261)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:135)
+	at org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream.<init>(BZip2CompressorInputStream.java:113)
+	at com.artipie.conda.meta.InfoIndex$TarBz.json(InfoIndex.java:64)
+	at com.artipie.asto.misc.UncheckedIOScalar.value(UncheckedIOScalar.java:36)
+	... 16 more
+
+
+
+
+# Run complete. Total time: 00:00:03
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark  Mode  Cnt  Score   Error  Units

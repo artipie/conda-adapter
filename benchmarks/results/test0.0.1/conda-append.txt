@@ -1,0 +1,169 @@
+# JMH version: 1.29
+# VM version: JDK 11.0.11, OpenJDK 64-Bit Server VM, 11.0.11+9-Ubuntu-0ubuntu2.20.04
+# VM invoker: /usr/lib/jvm/java-11-openjdk-amd64/bin/java
+# VM options: <none>
+# Blackhole mode: full + dont-inline hint
+# Warmup: 5 iterations, 10 s each
+# Measurement: 20 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: com.artipie.conda.CondaRepodataAppendBench.run
+
+# Run progress: 0.00% complete, ETA 00:20:50
+# Fork: 1 of 5
+# Warmup Iteration   1: 1224.425 ms/op
+# Warmup Iteration   2: 1112.289 ms/op
+# Warmup Iteration   3: 1115.531 ms/op
+# Warmup Iteration   4: 1112.671 ms/op
+# Warmup Iteration   5: 1115.037 ms/op
+Iteration   1: 1109.327 ms/op
+Iteration   2: 1106.007 ms/op
+Iteration   3: 1181.696 ms/op
+Iteration   4: 1176.860 ms/op
+Iteration   5: 1178.068 ms/op
+Iteration   6: 1182.488 ms/op
+Iteration   7: 1120.159 ms/op
+Iteration   8: 1117.207 ms/op
+Iteration   9: 1129.570 ms/op
+Iteration  10: 1128.801 ms/op
+Iteration  11: 1151.599 ms/op
+Iteration  12: 1159.032 ms/op
+Iteration  13: 1150.550 ms/op
+Iteration  14: 1174.095 ms/op
+Iteration  15: 1108.721 ms/op
+Iteration  16: 1115.598 ms/op
+Iteration  17: 1118.157 ms/op
+Iteration  18: 1183.412 ms/op
+Iteration  19: 1155.092 ms/op
+Iteration  20: 1155.374 ms/op
+
+# Run progress: 20.00% complete, ETA 00:17:25
+# Fork: 2 of 5
+# Warmup Iteration   1: 1265.765 ms/op
+# Warmup Iteration   2: 1117.406 ms/op
+# Warmup Iteration   3: 1116.278 ms/op
+# Warmup Iteration   4: 1118.807 ms/op
+# Warmup Iteration   5: 1115.943 ms/op
+Iteration   1: 1112.458 ms/op
+Iteration   2: 1109.244 ms/op
+Iteration   3: 1252.419 ms/op
+Iteration   4: 1224.796 ms/op
+Iteration   5: 1246.926 ms/op
+Iteration   6: 1231.059 ms/op
+Iteration   7: 1240.560 ms/op
+Iteration   8: 1250.076 ms/op
+Iteration   9: 1240.412 ms/op
+Iteration  10: 1270.306 ms/op
+Iteration  11: 1271.476 ms/op
+Iteration  12: 1205.114 ms/op
+Iteration  13: 1242.143 ms/op
+Iteration  14: 1295.810 ms/op
+Iteration  15: 1294.811 ms/op
+Iteration  16: 1249.127 ms/op
+Iteration  17: 1252.663 ms/op
+Iteration  18: 1215.085 ms/op
+Iteration  19: 1188.285 ms/op
+Iteration  20: 1220.318 ms/op
+
+# Run progress: 40.00% complete, ETA 00:13:12
+# Fork: 3 of 5
+# Warmup Iteration   1: 1212.612 ms/op
+# Warmup Iteration   2: 1096.409 ms/op
+# Warmup Iteration   3: 1095.466 ms/op
+# Warmup Iteration   4: 1096.080 ms/op
+# Warmup Iteration   5: 1095.530 ms/op
+Iteration   1: 1098.884 ms/op
+Iteration   2: 1098.426 ms/op
+Iteration   3: 1098.647 ms/op
+Iteration   4: 1102.230 ms/op
+Iteration   5: 1202.046 ms/op
+Iteration   6: 1238.729 ms/op
+Iteration   7: 1205.631 ms/op
+Iteration   8: 1275.064 ms/op
+Iteration   9: 1133.182 ms/op
+Iteration  10: 1176.948 ms/op
+Iteration  11: 1145.725 ms/op
+Iteration  12: 1142.661 ms/op
+Iteration  13: 1086.789 ms/op
+Iteration  14: 1087.537 ms/op
+Iteration  15: 1085.326 ms/op
+Iteration  16: 1082.343 ms/op
+Iteration  17: 1081.698 ms/op
+Iteration  18: 1085.892 ms/op
+Iteration  19: 1088.213 ms/op
+Iteration  20: 1088.695 ms/op
+
+# Run progress: 60.00% complete, ETA 00:08:52
+# Fork: 4 of 5
+# Warmup Iteration   1: 1225.479 ms/op
+# Warmup Iteration   2: 1105.034 ms/op
+# Warmup Iteration   3: 1102.476 ms/op
+# Warmup Iteration   4: 1105.007 ms/op
+# Warmup Iteration   5: 1101.926 ms/op
+Iteration   1: 1109.662 ms/op
+Iteration   2: 1105.771 ms/op
+Iteration   3: 1103.371 ms/op
+Iteration   4: 1107.087 ms/op
+Iteration   5: 1104.501 ms/op
+Iteration   6: 1101.262 ms/op
+Iteration   7: 1105.350 ms/op
+Iteration   8: 1098.446 ms/op
+Iteration   9: 1098.168 ms/op
+Iteration  10: 1098.231 ms/op
+Iteration  11: 1102.804 ms/op
+Iteration  12: 1093.979 ms/op
+Iteration  13: 1089.812 ms/op
+Iteration  14: 1087.730 ms/op
+Iteration  15: 1086.381 ms/op
+Iteration  16: 1129.972 ms/op
+Iteration  17: 1213.382 ms/op
+Iteration  18: 1182.125 ms/op
+Iteration  19: 1184.754 ms/op
+Iteration  20: 1165.669 ms/op
+
+# Run progress: 80.00% complete, ETA 00:04:28
+# Fork: 5 of 5
+# Warmup Iteration   1: 1221.535 ms/op
+# Warmup Iteration   2: 1102.570 ms/op
+# Warmup Iteration   3: 1104.041 ms/op
+# Warmup Iteration   4: 1103.069 ms/op
+# Warmup Iteration   5: 1102.985 ms/op
+Iteration   1: 1101.162 ms/op
+Iteration   2: 1096.955 ms/op
+Iteration   3: 1092.713 ms/op
+Iteration   4: 1098.052 ms/op
+Iteration   5: 1098.727 ms/op
+Iteration   6: 1127.108 ms/op
+Iteration   7: 1300.199 ms/op
+Iteration   8: 1289.118 ms/op
+Iteration   9: 1288.738 ms/op
+Iteration  10: 1293.954 ms/op
+Iteration  11: 1288.623 ms/op
+Iteration  12: 1297.166 ms/op
+Iteration  13: 1293.347 ms/op
+Iteration  14: 1293.371 ms/op
+Iteration  15: 1266.908 ms/op
+Iteration  16: 1246.153 ms/op
+Iteration  17: 1210.038 ms/op
+Iteration  18: 1185.092 ms/op
+Iteration  19: 1222.627 ms/op
+Iteration  20: 1195.818 ms/op
+
+
+Result "com.artipie.conda.CondaRepodataAppendBench.run":
+  1167.739 ±(99.9%) 23.923 ms/op [Average]
+  (min, avg, max) = (1081.698, 1167.739, 1300.199), stdev = 70.537
+  CI (99.9%): [1143.816, 1191.662] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:22:21
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark                     Mode  Cnt     Score    Error  Units
+CondaRepodataAppendBench.run  avgt  100  1167.739 ± 23.923  ms/op

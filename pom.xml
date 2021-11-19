@@ -37,6 +37,7 @@ SOFTWARE.
   <inceptionYear>2021</inceptionYear>
   <properties>
     <qulice.license>${project.basedir}/LICENSE.header</qulice.license>
+    <junit-platform.version>5.7.1</junit-platform.version>
   </properties>
   <licenses>
     <license>

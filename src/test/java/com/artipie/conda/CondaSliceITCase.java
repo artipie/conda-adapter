@@ -165,7 +165,6 @@ public final class CondaSliceITCase {
                 )
             )
         );
-        FileUtils.deleteDirectory(this.tmp.toFile());
     }
 
     @Test
@@ -224,6 +223,7 @@ public final class CondaSliceITCase {
                 )
             )
         );
+        this.cntn.execInContainer("rm", "-r", "./%s/conda-out/*");
         MatcherAssert.assertThat(
             "Package not found in storage",
             this.storage.exists(

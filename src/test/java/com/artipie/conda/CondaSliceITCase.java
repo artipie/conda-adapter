@@ -165,6 +165,7 @@ public final class CondaSliceITCase {
                 )
             )
         );
+        FileUtils.deleteDirectory(this.tmp.toFile());
     }
 
     @Test

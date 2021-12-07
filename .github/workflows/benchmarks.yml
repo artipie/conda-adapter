@@ -2,7 +2,7 @@ name: Run benchmarks
 on:
   push:
     tags:
-      - 'test*'
+      - 'v*'
 jobs:
   running-bench:
     name: Run benchmark
@@ -19,7 +19,7 @@ jobs:
         run: |
           git clone https://github.com/artipie/benchmarks.git tmp-bench
           cd tmp-bench/adapters
-          make run TARGET=${{ env.REPO }}
+          make draw-charts TARGET=${{ env.REPO }} TAG=${{ env.TAG }}
           mkdir -p $GITHUB_WORKSPACE/benchmarks/results/${{ env.TAG }}
           cp -avr out/${{ env.REPO }}/* $GITHUB_WORKSPACE/benchmarks/results/${{ env.TAG }}
           cd ../..

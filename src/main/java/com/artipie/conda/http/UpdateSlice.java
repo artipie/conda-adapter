@@ -24,6 +24,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -31,10 +32,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import org.cactoos.map.MapEntry;
-import org.cactoos.map.MapOf;
 import org.reactivestreams.Publisher;
 
 /**
@@ -100,9 +98,7 @@ public final class UpdateSlice implements Slice {
                                         this.asto, new Key.From(matcher.group(2), "repodata.json")
                                     ).merge(
                                         // @checkstyle MagicNumberCheck (3 lines)
-                                        new MapOf<String, JsonObject>(
-                                            new MapEntry<>(matcher.group(3), json)
-                                        )
+                                        Collections.singletonMap(matcher.group(3), json)
                                     )
                                 ).thenCompose(
                                     ignored -> this.asto.move(temp, new Key.From(matcher.group(1)))

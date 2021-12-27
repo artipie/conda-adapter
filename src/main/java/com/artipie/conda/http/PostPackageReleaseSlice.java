@@ -7,11 +7,11 @@ package com.artipie.conda.http;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.rs.common.RsJson;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import javax.json.Json;
-import org.cactoos.io.ReaderOf;
 import org.reactivestreams.Publisher;
 
 /**
@@ -33,7 +33,7 @@ public final class PostPackageReleaseSlice implements Slice {
         final Publisher<ByteBuffer> body) {
         return new RsJson(
             () -> Json.createReader(
-                new ReaderOf(
+                new StringReader(
                     String.join(
                         "\n",
                         "{",

@@ -14,12 +14,12 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithHeaders;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.rs.common.RsJson;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonStructure;
-import org.cactoos.io.ReaderOf;
 import org.reactivestreams.Publisher;
 
 /**
@@ -76,7 +76,7 @@ final class GetUserSlice implements Slice {
      */
     private static JsonStructure json(final String name) {
         return Json.createReader(
-            new ReaderOf(
+            new StringReader(
                 String.join(
                     "\n",
                     "{",

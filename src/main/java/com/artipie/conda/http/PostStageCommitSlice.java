@@ -10,13 +10,13 @@ import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.rs.common.RsJson;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.json.Json;
-import org.cactoos.io.ReaderOf;
 import org.reactivestreams.Publisher;
 
 /**
@@ -62,7 +62,7 @@ public final class PostStageCommitSlice implements Slice {
             final String name = matcher.group(1);
             res = new RsJson(
                 () -> Json.createReader(
-                    new ReaderOf(
+                    new StringReader(
                         String.join(
                             "\n",
                             "{",

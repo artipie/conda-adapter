@@ -26,7 +26,7 @@ SOFTWARE.
   <parent>
     <groupId>com.artipie</groupId>
     <artifactId>ppom</artifactId>
-    <version>0.5.1</version>
+    <version>1.1.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>conda-bench</artifactId>
@@ -34,7 +34,7 @@ SOFTWARE.
   <packaging>jar</packaging>
   <properties>
     <jmh.version>1.29</jmh.version>
-    <asto.version>v1.8.0</asto.version>
+    <asto.version>v1.11.0</asto.version>
   </properties>
   <dependencies>
     <dependency>

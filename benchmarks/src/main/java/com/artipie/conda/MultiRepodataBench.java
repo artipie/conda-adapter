@@ -4,6 +4,7 @@
  */
 package com.artipie.conda;
 
+import com.artipie.asto.misc.UncheckedIOFunc;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.cactoos.scalar.Unchecked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Measurement;
@@ -56,7 +56,7 @@ public class MultiRepodataBench {
             throw new IllegalStateException("BENCH_DIR environment variable must be set");
         }
         try (Stream<Path> files = Files.list(Paths.get(MultiRepodataBench.BENCH_DIR))) {
-            this.data = files.map(file -> new Unchecked<>(() -> Files.readAllBytes(file)).value())
+            this.data = files.map(new UncheckedIOFunc<>(Files::readAllBytes))
                 .collect(Collectors.toList());
         }
     }

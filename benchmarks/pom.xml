@@ -61,19 +61,14 @@ SOFTWARE.
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-failsafe-plugin</artifactId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M5</version>
         <configuration>
-          <parallel>none</parallel>
+          <useFile>false</useFile>
+          <trimStackTrace>false</trimStackTrace>
+          <failIfNoTests>false</failIfNoTests>
           <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

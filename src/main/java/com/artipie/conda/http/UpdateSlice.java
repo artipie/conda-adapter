@@ -171,8 +171,18 @@ public final class UpdateSlice implements Slice {
     private static Publisher<ByteBuffer> filePart(final Headers headers,
         final Publisher<ByteBuffer> body) {
         return Flowable.fromPublisher(
-            new RqMultipart(headers, body)
-                .filter(hdrs -> new ContentDisposition(hdrs).fieldName().equals("file"))
+            new RqMultipart(headers, body).inspect(
+                (part, inspector) -> {
+                    if (new ContentDisposition(part.headers()).fieldName().equals("file")) {
+                        inspector.accept(part);
+                    } else {
+                        inspector.ignore(part);
+                    }
+                    final CompletableFuture<Void> res = new CompletableFuture<>();
+                    res.complete(null);
+                    return res;
+                }
+            )
         ).flatMap(part -> part);
     }
 }

@@ -71,6 +71,17 @@ SOFTWARE.
       <url>https://github.com/artipie/conda-adapter</url>
     </site>
   </distributionManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.8.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>com.artipie</groupId>
@@ -152,7 +163,7 @@ SOFTWARE.
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit-platform.version}</version>
+      <version>5.8.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>

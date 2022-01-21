@@ -93,7 +93,7 @@ public final class CondaSliceITCase {
             new TestResource("example-project").asPath().toFile(),
             this.tmp.toFile()
         );
-        this.cntn = new GenericContainer<>("continuumio/miniconda3:4.10.3")
+        this.cntn = new GenericContainer<>("continuumio/miniconda3:4.10.3-alpine")
             .withCommand("tail", "-f", "/dev/null")
             .withWorkingDirectory("/home/")
             .withFileSystemBind(this.tmp.toString(), "/home");

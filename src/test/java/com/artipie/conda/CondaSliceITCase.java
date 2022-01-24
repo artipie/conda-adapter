@@ -14,7 +14,6 @@ import com.artipie.http.slice.LoggingSlice;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
 import io.vertx.reactivex.core.Vertx;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
-import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -48,11 +46,9 @@ public final class CondaSliceITCase {
     private static final Vertx VERTX = Vertx.vertx();
 
     /**
-     * Temporary directory for all tests.
-     * @checkstyle VisibilityModifierCheck (3 lines)
+     * Temp directory.
      */
-    @TempDir
-    Path tmp;
+    private Path tmp;
 
     /**
      * Test storage.
@@ -76,6 +72,7 @@ public final class CondaSliceITCase {
 
     @BeforeEach
     void initialize() throws Exception {
+        this.tmp = Files.createTempDirectory("conda-test");
         this.storage = new InMemoryStorage();
         this.port = new RandomFreePort().get();
         final String url = String.format("http://host.testcontainers.internal:%d", this.port);
@@ -193,6 +190,9 @@ public final class CondaSliceITCase {
     void stop() {
         this.server.stop();
         this.cntn.stop();
+        if (this.tmp != null) {
+            FileUtils.deleteQuietly(this.tmp.toFile());
+        }
     }
 
     private String exec(final String... command) throws Exception {
@@ -201,9 +201,8 @@ public final class CondaSliceITCase {
         return res.toString();
     }
 
-    private void moveCondarc() throws IOException, InterruptedException {
+    private void moveCondarc() throws Exception {
         this.cntn.execInContainer("mv", "/home/.condarc", "/root/");
-        this.cntn.execInContainer("rm", "/home/.condarc");
     }
 
     private void uploadAndCheck(final String version) throws Exception {

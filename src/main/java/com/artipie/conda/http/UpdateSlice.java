@@ -50,7 +50,7 @@ public final class UpdateSlice implements Slice {
     /**
      * Temporary upload key.
      */
-    private static final Key TMP = new Key.From("./upload");
+    private static final Key TMP = new Key.From("upload");
 
     /**
      * Abstract storage.
